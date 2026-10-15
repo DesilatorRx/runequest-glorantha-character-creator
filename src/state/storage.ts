@@ -1,7 +1,7 @@
 import type { Character } from '../engine/types'
 
-const KEY = 'rq-initiate.characters.v1'
-const ACTIVE_KEY = 'rq-initiate.active.v1'
+const KEY = 'rqg-character-creator.characters.v1'
+const ACTIVE_KEY = 'rqg-character-creator.active.v1'
 
 // Storage can throw (private mode, blocked site data); the app must keep working without it.
 

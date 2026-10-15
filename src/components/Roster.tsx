@@ -31,7 +31,7 @@ export function Roster({ chars, onOpen, onCreate, onImport, onDelete, onDuplicat
       <header className="hero">
         <div className="hero-mark" aria-hidden>☉</div>
         <div>
-          <h1>RuneQuest Initiate</h1>
+          <h1>RuneQuest Glorantha Character Creator</h1>
           <p className="dim">A free adventurer creator for RuneQuest: Roleplaying in Glorantha.</p>
         </div>
       </header>

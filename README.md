@@ -1,6 +1,6 @@
-# RuneQuest Initiate: free RuneQuest character creator (Roleplaying in Glorantha)
+# RuneQuest Glorantha Character Creator: free RuneQuest character creator
 
-A free, open-source **RuneQuest: Roleplaying in Glorantha (RQG) adventurer creator** that runs in your browser.
+A free, open-source **RuneQuest: Roleplaying in Glorantha (RQG) character creator** that runs in your browser. **Use it here: https://desilatorrx.github.io/runequest-glorantha-character-creator/**
 
 **Ruleset:** *RuneQuest: Roleplaying in Glorantha* (Chaosium, 2018, 2nd printing). Every number used in character
 creation was checked against the core rulebook, with page references in the data files. Known gaps are listed in
