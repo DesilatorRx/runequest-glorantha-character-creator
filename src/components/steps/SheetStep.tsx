@@ -1,0 +1,182 @@
+import {
+  CATEGORY_NAMES, CHAR_NAMES, LOCATION_NAMES, LOCATION_ROLLS, RUNE_NAMES, armorByLocation, charValue, computeDerived,
+  birthDate, commonRuneSpells, cultOf, gearById, homelandOf, knownSpirit, occupationOf, regionOf, runeSpellById, runeValue, skillLines,
+  sorceryLines, spiritSpellById,
+} from '../../engine/calc'
+import type { Character, SkillCategory } from '../../engine/types'
+import { CHARS, ELEMENTAL_RUNES, LOCATIONS, POWER_PAIRS } from '../../engine/types'
+import type { Issue } from '../../engine/validate'
+import { FAN_NOTICE } from '../legal'
+
+export function SheetStep({ c, issues }: { c: Character; issues: Issue[] }) {
+  const d = computeDerived(c)
+  const birth = birthDate(c)
+  const sorc = sorceryLines(c)
+  const lines = skillLines(c)
+  const armor = armorByLocation(c)
+  const cult = cultOf(c)
+  const errors = issues.filter(i => i.severity === 'error')
+  const warnings = issues.filter(i => i.severity === 'warning')
+  const weapons = c.gear.map(g => gearById(g.id)).filter(g => g && (g.category === 'melee' || g.category === 'missile' || g.category === 'shield'))
+  const cats = Object.keys(CATEGORY_NAMES) as SkillCategory[]
+
+  return (
+    <div className="stack">
+      <div className={`card no-print ${errors.length ? 'status-bad' : 'status-good'}`}>
+        {errors.length === 0
+          ? <strong>Ready for adventure.{warnings.length > 0 && ` (${warnings.length} note${warnings.length > 1 ? 's' : ''})`}</strong>
+          : <strong className="warn">{errors.length} rule issue{errors.length > 1 ? 's' : ''} to fix</strong>}
+        {issues.length > 0 && (
+          <ul className="small">
+            {issues.map((i, n) => <li key={n} className={i.severity === 'error' ? 'bad' : 'warn'}>{i.message}</li>)}
+          </ul>
+        )}
+      </div>
+
+      <article className="sheet">
+        <header className="sheet-head">
+          <div>
+            <h1>{c.name || 'Unnamed adventurer'}</h1>
+            <div className="dim">{c.concept}</div>
+          </div>
+          <div className="sheet-meta small">
+            <div>{[homelandOf(c)?.name, regionOf(c)?.name, c.info.clan && `${c.info.clan} clan`].filter(Boolean).join(' · ') || '—'} · Age {c.age}</div>
+            {(c.info.gender || birth.season) && <div>{[c.info.gender, [birth.day, birth.week, birth.season].filter(Boolean).join(' of ')].filter(Boolean).join(' · ')}</div>}
+            <div>{occupationOf(c)?.name ?? '—'}</div>
+            <div>{cult ? `Initiate of ${cult.name}` : '—'}</div>
+          </div>
+        </header>
+
+        <div className="sheet-grid">
+          <section>
+            <h3>Characteristics</h3>
+            <table className="compact">
+              <tbody>
+                {CHARS.map(ch => <tr key={ch}><th>{CHAR_NAMES[ch]}</th><td className="num">{charValue(c, ch)}</td></tr>)}
+              </tbody>
+            </table>
+            <h3>Attributes</h3>
+            <table className="compact">
+              <tbody>
+                <tr><th>Magic points</th><td className="num">{d.magicPoints}</td></tr>
+                <tr><th>Hit points</th><td className="num">{d.hp}</td></tr>
+                <tr><th>Healing rate</th><td className="num">{d.healingRate}</td></tr>
+                <tr><th>Damage bonus</th><td className="num">{d.damageBonus}</td></tr>
+                <tr><th>Spirit combat dmg</th><td className="num">{d.spiritDamage}</td></tr>
+                <tr><th>DEX / SIZ SR</th><td className="num">{d.dexSR} / {d.sizSR}</td></tr>
+                <tr><th>Max ENC</th><td className="num">{d.maxEnc}</td></tr>
+                <tr><th>Move</th><td className="num">{d.move}</td></tr>
+                {d.runePoints > 0 && <tr><th>Rune points</th><td className="num">{d.runePoints}</td></tr>}
+                <tr><th>Reputation</th><td className="num">{d.reputation}%</td></tr>
+              </tbody>
+            </table>
+          </section>
+
+          <section>
+            <h3>Runes</h3>
+            <table className="compact">
+              <tbody>
+                {ELEMENTAL_RUNES.filter(r => runeValue(c, r) > 0).map(r => <tr key={r}><th>{RUNE_NAMES[r]}</th><td className="num">{runeValue(c, r)}%</td></tr>)}
+                {POWER_PAIRS.map(([a, z]) => (
+                  <tr key={a}><th>{RUNE_NAMES[a]} / {RUNE_NAMES[z]}</th><td className="num">{runeValue(c, a)} / {runeValue(c, z)}</td></tr>
+                ))}
+              </tbody>
+            </table>
+            <h3>Passions</h3>
+            <ul className="plain small">
+              {c.passions.map(p => <li key={p.uid} className="row"><span>{p.kind}{p.target && ` (${p.target})`}</span><span className="spacer" /><span className="mono">{p.value}%</span></li>)}
+            </ul>
+          </section>
+
+          <section>
+            <h3>Hit locations</h3>
+            <table className="compact">
+              <thead><tr><th>D20</th><th>Location</th><th className="num">AP</th><th className="num">HP</th></tr></thead>
+              <tbody>
+                {LOCATIONS.map(l => (
+                  <tr key={l}><td className="mono small">{LOCATION_ROLLS[l]}</td><td>{LOCATION_NAMES[l]}</td><td className="num">{armor[l]}</td><td className="num">{d.locations[l]}</td></tr>
+                ))}
+              </tbody>
+            </table>
+            <h3>Magic</h3>
+            <p className="small">
+              <strong>Spirit:</strong> {knownSpirit(c).map(s => `${spiritSpellById(s.id)?.name ?? s.id} (${s.points})`).join(', ') || '—'}
+              <br />
+              <strong>Rune{cult ? ` (${cult.name})` : ''}:</strong> {c.runeSpells.map(id => runeSpellById(id)?.name ?? id).join(', ') || '—'}
+              {cult && <><br /><strong>Common Rune magic:</strong> {commonRuneSpells().map(s => s.name).join(', ')}</>}
+              {sorc.length > 0 && <><br /><strong>Sorcery:</strong> {sorc.map(l => `${l.name} ${l.total}%`).join(', ')}</>}
+            </p>
+          </section>
+        </div>
+
+        {weapons.length > 0 && (
+          <section>
+            <h3>Weapons</h3>
+            <table className="compact">
+              <thead><tr><th>Weapon</th><th className="num">%</th><th>Damage</th><th className="num">SR</th><th className="num">HP</th></tr></thead>
+              <tbody>
+                {weapons.map((w, i) => {
+                  const skill = lines.find(l => l.key === w!.skill)
+                  const sr = w!.category === 'missile' ? d.dexSR : d.dexSR + d.sizSR + (w!.sr ?? 0)
+                  return (
+                    <tr key={i}>
+                      <td>{w!.name}</td>
+                      <td className="num">{skill?.total ?? '—'}</td>
+                      <td className="mono">{w!.damage}{w!.category === 'melee' && d.damageBonus !== '—' ? ` ${d.damageBonus}` : ''}</td>
+                      <td className="num">{sr}</td>
+                      <td className="num">{w!.hp}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </section>
+        )}
+
+        <section>
+          <h3>Skills</h3>
+          <div className="skill-columns">
+            {cats.map(cat => {
+              const rows = lines.filter(l => l.skill.category === cat)
+              if (!rows.length) return null
+              return (
+                <div key={cat} className="skill-block">
+                  <h4>{CATEGORY_NAMES[cat]}</h4>
+                  <ul className="plain small">
+                    {rows.map(l => <li key={l.key} className="row nowrap"><span>{l.name}</span><span className="spacer" /><span className="mono">{l.total}%</span></li>)}
+                  </ul>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+
+        <section>
+          <h3>Equipment</h3>
+          <p className="small">{c.gear.map(g => `${gearById(g.id)?.name ?? g.id}${g.qty > 1 ? ` ×${g.qty}` : ''}`).join(', ') || '—'}</p>
+        </section>
+
+        {(c.info.heirloom || c.info.scars || c.info.father || c.info.mother || c.info.tribe) && (
+          <section>
+            <h3>Background</h3>
+            <p className="small">
+              {c.info.tribe && <>Tribe: {c.info.tribe}. </>}
+              {(c.info.father || c.info.mother) && <>Parents: {[c.info.father, c.info.mother].filter(Boolean).join(' and ')}. </>}
+              {c.info.handedness === 'left' && <>Left-handed. </>}
+              {c.info.scars && <>Scars: {c.info.scars}. </>}
+              {c.info.heirloom && <><br />Heirloom: {c.info.heirloom}</>}
+            </p>
+          </section>
+        )}
+
+        {c.notes && (
+          <section>
+            <h3>Notes</h3>
+            <p className="small pre">{c.notes}</p>
+          </section>
+        )}
+        <p className="faint small print-only">{FAN_NOTICE}</p>
+      </article>
+    </div>
+  )
+}
