@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { newCharacter } from '../state/store'
+import { newCharacter, uid } from '../state/store'
 import {
   BASE_CATEGORIES, categoryMod, charValue, computeBudget, computeDerived, damageBonus, elementalRune, locationHP, powerRune, rollChar,
-  runeCharTargets, runeValue, skillLines, skillTotal, spiritCombatDamage, takePassion,
+  gearById, kitWeaponSkills, runeCharTargets, runeValue, skillLines, skillTotal, spiritCombatDamage, takePassion, weaponsForSkill, withKit,
 } from './calc'
 import type { Character } from './types'
 import { CHARS } from './types'
@@ -242,3 +242,28 @@ describe('validation', () => {
     expect(errors(c)).toEqual([])
   })
 })
+
+describe('occupation starting kit', () => {
+  it('adds the kit free and swaps it when the occupation changes, keeping bought gear', () => {
+    let c = make(c => { c.homeland = 'sartar'; c.gear = [{ uid: 'b', id: 'dagger', qty: 1 }] })
+    c = { ...withKit(c, 'warrior_heavy_infantry', uid), occupation: 'warrior_heavy_infantry' }
+    const kit = c.gear.filter(g => g.kit)
+    expect(kit.length).toBeGreaterThan(0)
+    expect(computeBudget(c).silver.spent).toBe(gearById('dagger')!.cost) // only the bought dagger costs silver
+    c = { ...withKit(c, 'scribe', uid), occupation: 'scribe' }
+    expect(c.gear.some(g => g.id === 'dagger' && !g.kit)).toBe(true)
+    expect(c.gear.filter(g => g.kit).map(g => g.id)).not.toEqual(kit.map(g => g.id))
+  })
+
+  it('offers a free weapon for each weapon skill a warrior trains', () => {
+    const c = make(c => {
+      c.homeland = 'sartar'
+      c.occupation = 'warrior_heavy_infantry'
+      c.occupationPicks = { 5: 'broadsword', 7: 'composite_bow', 8: 'dagger' }
+    })
+    const skills = kitWeaponSkills(c)
+    expect(skills).toEqual(expect.arrayContaining(['broadsword', 'shield_large', 'composite_bow', 'dagger']))
+    expect(weaponsForSkill('broadsword').map(g => g.id)).toContain('broadsword')
+  })
+})
+

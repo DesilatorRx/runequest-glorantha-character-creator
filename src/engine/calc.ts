@@ -1,8 +1,9 @@
 import { CULTS, GEAR, HOMELANDS, OCCUPATIONS, RUNE_SPELLS, SKILLS, SPIRIT_SPELLS } from '../data'
+import { OCCUPATION_KITS } from '../data/occupationGear'
 import { SORCERY_CULTS, SORCERY_RULES, SORCERY_SPELLS } from '../data/sorcery'
 import { CHAR_DICE, RULES, RUNE_CHAR } from './rules'
 import type {
-  Character, CharId, Cult, ElementalRune, GearItem, Homeland, LearnedSpirit, Location, Occupation, Passion, PassionOption, PowerRune,
+  Character, CharId, Cult, ElementalRune, GearItem, Homeland, LearnedSpirit, Location, Occupation, OwnedGear, Passion, PassionOption, PowerRune,
   RuneId, Skill, SkillCategory, SkillChoiceFrom, SkillGrant, SkillKey,
 } from './types'
 import { CHARS, ELEMENTAL_RUNES, POWER_PAIRS } from './types'
@@ -472,7 +473,7 @@ export function computeBudget(c: Character) {
   const occ = occupationOf(c)
   const choiceGrants = (occ?.skills ?? []).map((g, i) => ('choose' in g ? i : -1)).filter(i => i >= 0)
   const wealth = occ?.wealth ?? 0
-  const spent = c.gear.reduce((s, g) => s + (gearById(g.id)?.cost ?? 0) * g.qty, 0)
+  const spent = c.gear.reduce((s, g) => s + (g.kit ? 0 : (gearById(g.id)?.cost ?? 0) * g.qty), 0)
   return {
     powerPicks: { total: RULES.powerRunePicks, spent: c.powerPicks.length },
     runeBonus: { total: RULES.runeBonusPoints, spent: runeBonusSpent(c) },
@@ -629,3 +630,40 @@ export function sorceryLines(c: Character): SorceryLine[] {
     return [{ id, name: spell.name, bonus, total: Math.min(raw, readWrite, RULES.maxStartingSkill), costMultiplier }]
   })
 }
+
+// ---------------------------------------------------------------------------
+// Occupation starting kit (book pp.63–73): free gear that doesn't cost starting silver
+
+export const occupationKit = (c: Character) => OCCUPATION_KITS[c.occupation]
+
+/** The kit's catalog items as owned gear, marked free. Either/or choices use the picks made on the Equipment step. */
+export function kitGear(occupation: string, picks: Record<number, string>, newUid: () => string): OwnedGear[] {
+  const kit = OCCUPATION_KITS[occupation]
+  if (!kit) return []
+  const chosen = (kit.choices ?? []).flatMap((ch, i) => (picks[i] ?? ch.options[0] ?? '').split('+')).filter(Boolean)
+  return [...kit.items.map(k => ({ id: k.id, qty: k.qty ?? 1 })), ...chosen.map(id => ({ id, qty: 1 }))]
+    .filter(g => gearById(g.id))
+    .map(g => ({ uid: newUid(), ...g, kit: true }))
+}
+
+/** Swap in a new occupation's kit: drop the old free items (kit gear and free weapons), keep anything bought. */
+export function withKit(c: Character, occupation: string, newUid: () => string): Character {
+  const bought = c.gear.filter(g => !g.kit)
+  return { ...c, kitPicks: {}, gear: [...kitGear(occupation, {}, newUid), ...bought] }
+}
+
+/**
+ * Weapon skills that earn a free starting weapon: the book's "appropriate weapons" (the weapon skills the occupation
+ * trains) or "cultural weapons" (the homeland's cultural weapons the adventurer trained, falling back to all of them).
+ */
+export function kitWeaponSkills(c: Character): SkillKey[] {
+  const kit = occupationKit(c)
+  if (!kit?.weapons || kit.weapons === 'none') return []
+  const trained = occupationGrants(c).map(g => g.key).filter(k => { const s = skillById(parseKey(k).id); return s && isWeaponSkill(s) })
+  if (kit.weapons === 'appropriate') return [...new Set(trained)]
+  const cultural = homelandOf(c)?.culturalWeapons ?? []
+  const both = trained.filter(k => cultural.includes(k))
+  return both.length ? [...new Set(both)] : cultural
+}
+
+export const weaponsForSkill = (key: SkillKey): GearItem[] => GEAR.filter(g => g.skill === key)

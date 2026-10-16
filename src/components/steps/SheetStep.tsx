@@ -1,6 +1,6 @@
 import {
   CATEGORY_NAMES, LOCATION_NAMES, LOCATION_ROLLS, armorByLocation, charValue, computeDerived,
-  birthDate, commonRuneSpells, cultOf, gearById, homelandOf, knownSpirit, occupationOf, regionOf, runeSpellById, runeValue, skillLines,
+  birthDate, commonRuneSpells, computeBudget, encCarried, occupationKit, remaining, cultOf, gearById, homelandOf, knownSpirit, occupationOf, regionOf, runeSpellById, runeValue, skillLines,
   sorceryLines, spiritSpellById,
 } from '../../engine/calc'
 import type { Character, SkillCategory } from '../../engine/types'
@@ -155,6 +155,8 @@ export function SheetStep({ c, issues }: { c: Character; issues: Issue[] }) {
         <section>
           <h3>Equipment</h3>
           <p className="small">{c.gear.map(g => `${gearById(g.id)?.name ?? g.id}${g.qty > 1 ? ` ×${g.qty}` : ''}`).join(', ') || '—'}</p>
+          {occupationKit(c)?.other.length ? <p className="small dim">Also: {occupationKit(c)!.other.join('; ')}</p> : null}
+          <p className="small dim">Silver left: {Math.round(remaining(computeBudget(c).silver) * 10) / 10} L · ENC carried {encCarried(c)} of {d.maxEnc}</p>
         </section>
 
         {(c.info.heirloom || c.info.scars || c.info.father || c.info.mother || c.info.tribe) && (

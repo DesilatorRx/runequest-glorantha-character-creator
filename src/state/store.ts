@@ -46,6 +46,7 @@ export function newCharacter(): Character {
     olderPicks: [],
     agingLoss: {},
     gear: [],
+    kitPicks: {},
     info: { gender: '', handedness: 'right', birthDay: 0, tribe: '', clan: '', father: '', mother: '', heirloom: '', scars: '' },
   }
 }

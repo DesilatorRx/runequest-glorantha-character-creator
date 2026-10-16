@@ -248,3 +248,5 @@ ul.plain li + li { margin-top: 0.2rem; }
 .pop-page { margin: 0.4rem 0 0; color: var(--text-faint); font-size: 0.78rem; }
 .pop-facts { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0 0 0.5rem; }
 @media print { .pop-trigger { border-bottom: 0; } }
+.kit-skill { width: 12rem; flex: none; }
+.kit-other li::before { content: '• '; color: var(--accent); }

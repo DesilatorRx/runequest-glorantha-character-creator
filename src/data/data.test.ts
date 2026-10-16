@@ -3,6 +3,7 @@ import { RULES } from '../engine/rules'
 import type { SkillGrant, SkillKey } from '../engine/types'
 import { CULTS, GEAR, HOMELANDS, OCCUPATIONS, RUNE_SPELLS, SKILLS, SPIRIT_SPELLS } from '.'
 import { SKILL_INFO } from './abilityInfo'
+import { OCCUPATION_KITS } from './occupationGear'
 import { SORCERY_SPELLS } from './sorcery'
 import { SORCERY_SPELL_INFO } from './spellInfoSorcery'
 import { RUNE_SPELL_INFO } from './spellInfoRune'
@@ -52,5 +53,15 @@ describe('data integrity', () => {
     expect(missing(SPIRIT_SPELLS.map(s => s.id), SPIRIT_SPELL_INFO)).toEqual([])
     expect(missing(RUNE_SPELLS.map(s => s.id), RUNE_SPELL_INFO)).toEqual([])
     expect(missing(SORCERY_SPELLS.map(s => s.id), SORCERY_SPELL_INFO)).toEqual([])
+  })
+
+  it('gives every occupation a starting kit made of real items', () => {
+    const gear = new Set(GEAR.map(g => g.id))
+    for (const o of OCCUPATIONS) {
+      const kit = OCCUPATION_KITS[o.id]
+      expect(kit, o.id).toBeDefined()
+      const ids = [...kit.items.map(i => i.id), ...(kit.choices ?? []).flatMap(c => c.options.flatMap(x => x.split('+')))]
+      expect(ids.filter(id => !gear.has(id)), o.id).toEqual([])
+    }
   })
 })

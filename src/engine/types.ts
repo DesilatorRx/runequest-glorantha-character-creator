@@ -206,7 +206,15 @@ export const LOCATIONS: Location[] = ['rleg', 'lleg', 'abdomen', 'chest', 'rarm'
 // Adventurer
 
 export interface Passion { uid: string; kind: PassionKind; target: string; value: number }
-export interface OwnedGear { uid: string; id: string; qty: number }
+export interface OwnedGear {
+  uid: string
+  id: string
+  qty: number
+  /** Part of the occupation's starting kit: free, and replaced if the occupation changes. */
+  kit?: boolean
+  /** For a free starting weapon: the trained skill it was taken for (one weapon per skill). */
+  kitSkill?: SkillKey
+}
 export interface LearnedSpirit { id: string; points: number }
 
 export interface Character {
@@ -275,6 +283,8 @@ export interface Character {
   agingLoss: Partial<Record<CharId, number>>
 
   gear: OwnedGear[]
+  /** Either/or picks in the occupation's starting kit, by index. */
+  kitPicks: Record<number, string>
   /** Step 8: other information. */
   info: OtherInfo
 }

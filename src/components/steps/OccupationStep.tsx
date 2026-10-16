@@ -1,5 +1,5 @@
 import { OCCUPATIONS } from '../../data'
-import { cultById, homelandOf, occupationOf, resolveKey, skillChoices, skillName, takePassion } from '../../engine/calc'
+import { cultById, homelandOf, occupationOf, resolveKey, skillChoices, skillName, takePassion, withKit } from '../../engine/calc'
 import { RULES } from '../../engine/rules'
 import { uid } from '../../state/store'
 import { ChoiceGrid, Section, SkillSelect, type StepProps } from '../ui'
@@ -20,7 +20,7 @@ export function OccupationStep({ c, set }: StepProps) {
         <ChoiceGrid
           items={list.map(o => ({ id: o.id, name: o.name, blurb: <>{suggested(o.id) && <><span className="pill accent">suggested for {home!.name}</span><br /></>}{o.hint}{o.source !== 'wiki' && o.source !== 'book' && <><br /><span className="pill warn-pill">{o.source === 'community' ? 'fan transcription' : 'numbers unverified'}</span></>}</> }))}
           value={c.occupation}
-          onPick={id => set(ch => (ch.occupation === id ? ch : { ...ch, occupation: id, occupationPicks: {} }))}
+          onPick={id => set(ch => (ch.occupation === id ? ch : { ...withKit(ch, id, uid), occupation: id, occupationPicks: {} }))}
         />
       </Section>
 
