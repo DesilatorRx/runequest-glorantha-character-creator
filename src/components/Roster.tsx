@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { cultOf, homelandOf, occupationOf } from '../engine/calc'
 import type { Character } from '../engine/types'
 import { validate } from '../engine/validate'
+import { track } from '../analytics'
 import { FAN_NOTICE } from './legal'
 
 export function Roster({ chars, onOpen, onCreate, onImport, onDelete, onDuplicate }: {
@@ -20,6 +21,7 @@ export function Roster({ chars, onOpen, onCreate, onImport, onDelete, onDuplicat
     try {
       const data = JSON.parse(await file.text())
       if (!data || typeof data !== 'object' || !data.chars || !data.runes) throw new Error('Not an adventurer file')
+      track('import-json', 'Imported an adventurer')
       onImport(data as Character)
     } catch (e) {
       setError(`Couldn't import ${file.name}: ${(e as Error).message}`)
@@ -84,7 +86,7 @@ export function Roster({ chars, onOpen, onCreate, onImport, onDelete, onDuplicat
 
       <footer className="small faint footer">
         <p>{FAN_NOTICE}</p>
-        <p>No rules text is included. You'll need the RuneQuest rulebook to play.</p>
+        <p>No rules text is included. You'll need the RuneQuest rulebook to play. Anonymous usage counts (no cookies, no personal data) via GoatCounter; adventurers never leave your browser.</p>
       </footer>
     </div>
   )

@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { track } from '../analytics'
 import {
   CHAR_NAMES, charValue, computeBudget, computeDerived, cultOf, homelandOf, occupationOf, remaining, type Pool,
 } from '../engine/calc'
@@ -39,6 +40,11 @@ export function Editor({ c, set, onClose }: { c: Character; set: Setter; onClose
   const [step, setStep] = useState<StepId>('concept')
   const issues = useMemo(() => validate(c), [c])
   const idx = STEPS.findIndex(s => s.id === step)
+  const errorCount = issues.filter(i => i.severity === 'error').length
+  useEffect(() => { track(`step/${step}`, `Reached step: ${STEPS.find(s => s.id === step)?.label}`, true) }, [step])
+  useEffect(() => {
+    if (step === 'sheet' && errorCount === 0) track('sheet-ready', 'Viewed a ready-for-adventure sheet', true)
+  }, [step, errorCount])
 
   const props = { c, set }
   const body = {
@@ -65,7 +71,7 @@ export function Editor({ c, set, onClose }: { c: Character; set: Setter; onClose
         <strong className="topbar-name">{c.name || 'New adventurer'}</strong>
         {homelandOf(c) && <span className="pill">{homelandOf(c)!.name}</span>}
         <span className="spacer" />
-        <button type="button" onClick={() => downloadJson(`${(c.name || 'adventurer').replace(/[^\w-]+/g, '_')}.rqg.json`, c)}>Export JSON</button>
+        <button type="button" onClick={() => { track('export-json', 'Exported an adventurer'); downloadJson(`${(c.name || 'adventurer').replace(/[^\w-]+/g, '_')}.rqg.json`, c) }}>Export JSON</button>
         <button type="button" onClick={() => { setStep('sheet'); setTimeout(() => window.print(), 50) }}>Print</button>
       </header>
 

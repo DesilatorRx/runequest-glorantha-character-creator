@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { homelandById, withKit } from '../engine/calc'
 import { RQG_OPTIONS, RULES } from '../engine/rules'
 import type { Character, Passion } from '../engine/types'
+import { track } from '../analytics'
 import { loadActiveId, loadCharacters, saveActiveId, saveCharacters } from './storage'
 
 export const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4)
@@ -91,6 +92,7 @@ export function useCharacters() {
   }, [])
 
   const create = useCallback(() => {
+    track('new-adventurer', 'New adventurer')
     const c = newCharacter()
     setChars(list => [...list, c])
     setActiveId(c.id)
