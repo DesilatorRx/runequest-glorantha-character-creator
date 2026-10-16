@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { newCharacter, uid } from '../state/store'
+import { newCharacter, normalize, uid } from '../state/store'
 import {
   BASE_CATEGORIES, categoryMod, charValue, computeBudget, computeDerived, damageBonus, elementalRune, locationHP, powerRune, rollChar,
-  gearById, kitWeaponSkills, runeCharTargets, runeValue, skillLines, skillTotal, spiritCombatDamage, takePassion, weaponsForSkill, withKit,
+  armorByLocation, gearById, kitWeaponSkills, runeCharTargets, runeValue, skillLines, skillTotal, spiritCombatDamage, takePassion, weaponsForSkill, withKit,
 } from './calc'
 import type { Character } from './types'
 import { CHARS } from './types'
@@ -264,6 +264,16 @@ describe('occupation starting kit', () => {
     const skills = kitWeaponSkills(c)
     expect(skills).toEqual(expect.arrayContaining(['broadsword', 'shield_large', 'composite_bow', 'dagger']))
     expect(weaponsForSkill('broadsword').map(g => g.id)).toContain('broadsword')
+  })
+
+  it('hands the kit to an older save that never received it, once', () => {
+    const old = { ...make(c => { c.homeland = 'sartar'; c.occupation = 'warrior_heavy_infantry' }), kitFor: undefined }
+    const loaded = normalize(old)
+    expect(loaded.gear.some(g => g.kit && g.id === 'closed_helm')).toBe(true)
+    expect(armorByLocation(loaded).head).toBe(5)
+    // Removing kit items afterwards sticks: loading again doesn't re-add them.
+    const trimmed = { ...loaded, gear: [] }
+    expect(normalize(trimmed).gear).toEqual([])
   })
 })
 

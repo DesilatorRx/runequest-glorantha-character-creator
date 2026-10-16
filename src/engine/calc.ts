@@ -649,7 +649,7 @@ export function kitGear(occupation: string, picks: Record<number, string>, newUi
 /** Swap in a new occupation's kit: drop the old free items (kit gear and free weapons), keep anything bought. */
 export function withKit(c: Character, occupation: string, newUid: () => string): Character {
   const bought = c.gear.filter(g => !g.kit)
-  return { ...c, kitPicks: {}, gear: [...kitGear(occupation, {}, newUid), ...bought] }
+  return { ...c, kitPicks: {}, kitFor: occupation, gear: [...kitGear(occupation, {}, newUid), ...bought] }
 }
 
 /**

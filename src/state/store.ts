@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { homelandById } from '../engine/calc'
+import { homelandById, withKit } from '../engine/calc'
 import { RQG_OPTIONS, RULES } from '../engine/rules'
 import type { Character, Passion } from '../engine/types'
 import { loadActiveId, loadCharacters, saveActiveId, saveCharacters } from './storage'
@@ -56,8 +56,13 @@ export function homelandPassions(homeland: string): Passion[] {
   return (homelandById(homeland)?.passions ?? []).map(p => ({ uid: uid(), ...p }))
 }
 
-/** Fill any fields missing from older or hand-edited saves. */
+/** Fill any fields missing from older or hand-edited saves, and hand out a starting kit the save never received. */
 export function normalize(raw: Partial<Character>): Character {
+  const c = fillDefaults(raw)
+  return c.occupation && c.kitFor === undefined ? withKit(c, c.occupation, uid) : c
+}
+
+function fillDefaults(raw: Partial<Character>): Character {
   const base = newCharacter()
   return {
     ...base,

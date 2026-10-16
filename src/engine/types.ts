@@ -285,6 +285,8 @@ export interface Character {
   gear: OwnedGear[]
   /** Either/or picks in the occupation's starting kit, by index. */
   kitPicks: Record<number, string>
+  /** The occupation whose starting kit has been handed out (so it's added once, even to older saves). */
+  kitFor?: string
   /** Step 8: other information. */
   info: OtherInfo
 }
