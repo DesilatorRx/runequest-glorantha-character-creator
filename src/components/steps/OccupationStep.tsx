@@ -1,7 +1,7 @@
 import { OCCUPATIONS } from '../../data'
-import { cultById, homelandOf, occupationOf, resolveKey, skillChoices, skillName, takePassion, withKit } from '../../engine/calc'
-import { RULES } from '../../engine/rules'
+import { cultById, homelandOf, occupationOf, skillChoices, skillName, undoFavored, withKit } from '../../engine/calc'
 import { uid } from '../../state/store'
+import { FavoredPicker } from '../FavoredPicker'
 import { ChoiceGrid, Section, SkillSelect, type StepProps } from '../ui'
 
 const STANDARD: Record<string, string> = { destitute: 'Destitute', poor: 'Poor', free: 'Free', noble: 'Noble', petty_king: 'Petty King' }
@@ -20,7 +20,7 @@ export function OccupationStep({ c, set }: StepProps) {
         <ChoiceGrid
           items={list.map(o => ({ id: o.id, name: o.name, blurb: <>{suggested(o.id) && <><span className="pill accent">suggested for {home!.name}</span><br /></>}{o.hint}{o.source !== 'wiki' && o.source !== 'book' && <><br /><span className="pill warn-pill">{o.source === 'community' ? 'fan transcription' : 'numbers unverified'}</span></>}</> }))}
           value={c.occupation}
-          onPick={id => set(ch => (ch.occupation === id ? ch : { ...withKit(ch, id, uid), occupation: id, occupationPicks: {} }))}
+          onPick={id => set(ch => (ch.occupation === id ? ch : { ...withKit(undoFavored(ch, 'occupation'), id, uid), occupation: id, occupationPicks: {} }))}
         />
       </Section>
 
@@ -60,14 +60,8 @@ export function OccupationStep({ c, set }: StepProps) {
               </li>
             ))}
           </ul>
-          <h4>Passion</h4>
-          <p className="small dim">Take one: new at {RULES.basePassion}%, or +{RULES.passionRepeat}% to one you already have.</p>
-          <div className="row">
-            {occ.passions.map(p => {
-              const label = `${p.kind}${p.target ? ` (${resolveKey(c, p.target)})` : ''}`
-              return <button type="button" key={label} className="small" onClick={() => set(ch => ({ ...ch, passions: takePassion(ch, p, uid()) }))}>+ {label}</button>
-            })}
-          </div>
+          <h4>Favored passion</h4>
+          <FavoredPicker c={c} set={set} slot="occupation" options={occ.passions} />
         </Section>
       )}
     </div>

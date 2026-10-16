@@ -250,6 +250,8 @@ export interface Character {
   runeCharToCha: { primary?: boolean; secondary?: boolean }
 
   passions: Passion[]
+  /** The one favored passion taken from the occupation and from the cult (so it can be swapped or undone). */
+  favored: { occupation?: FavoredTaken; cult?: FavoredTaken }
   /** Reputation from family history and heirloom, on top of the clan base and occupation bonus. */
   reputation: number
   /** Skill bonuses from family history events or heirlooms (e.g. famous ancestor: Orate +5%). */
@@ -290,6 +292,9 @@ export interface Character {
   /** Step 8: other information. */
   info: OtherInfo
 }
+
+/** A favored passion taken at creation: a new passion (`new`) or +10% to one already held (`bonus`). */
+export interface FavoredTaken { kind: PassionKind; target: string; uid: string; mode: 'new' | 'bonus'; delta?: number }
 
 export interface HistorySkill { uid: string; key: SkillKey; bonus: number; note: string }
 

@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { CULTS } from '../../data'
-import { RUNE_NAMES, charValue, computeDerived, cultById, cultOf, cultStartingKeys, homelandOf, occupationOf, resolveKey, runeSpellById, skillChoices, skillName, spiritSpellById, takePassion } from '../../engine/calc'
+import { RUNE_NAMES, charValue, computeDerived, cultById, cultOf, cultStartingKeys, homelandOf, occupationOf, resolveKey, runeSpellById, skillChoices, skillName, spiritSpellById, undoFavored } from '../../engine/calc'
 import { RULES } from '../../engine/rules'
-import { uid } from '../../state/store'
+import { FavoredPicker } from '../FavoredPicker'
 import { ChoiceGrid, Section, SkillSelect, Stepper, type StepProps } from '../ui'
 
 export function CultStep({ c, set }: StepProps) {
@@ -13,7 +13,7 @@ export function CultStep({ c, set }: StepProps) {
   const common = new Set([...(home?.cults ?? []), ...(occ?.cults ?? [])])
   const list = (home || occ) && !all ? CULTS.filter(x => common.has(x.id) || x.id === c.cult) : CULTS
 
-  const pick = (id: string) => set(ch => (ch.cult === id ? ch : { ...ch, cult: id, cultStartPicks: {}, cultPicks: [], powSacrifice: 0, runeSpells: [], spiritMagic: [] }))
+  const pick = (id: string) => set(ch => (ch.cult === id ? ch : { ...undoFavored(ch, 'cult'), cult: id, cultStartPicks: {}, cultPicks: [], powSacrifice: 0, runeSpells: [], spiritMagic: [] }))
 
   return (
     <div className="stack">
@@ -93,13 +93,7 @@ export function CultStep({ c, set }: StepProps) {
               </p>
             )}
             <h4>Favored passion</h4>
-            <p className="small dim">Take one: new at {RULES.basePassion}%, or +{RULES.passionRepeat}% to one you already have.</p>
-            <div className="row">
-              {cult.passions.map(p => {
-                const label = `${p.kind}${p.target ? ` (${p.target})` : ''}`
-                return <button type="button" key={label} className="small" onClick={() => set(ch => ({ ...ch, passions: takePassion(ch, p, uid()) }))}>+ {label}</button>
-              })}
-            </div>
+            <FavoredPicker c={c} set={set} slot="cult" options={cult.passions} />
           </Section>
           <Section title="What the cult teaches">
             <h4>Spirit magic</h4>

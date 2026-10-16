@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { newCharacter, normalize, uid } from '../state/store'
 import {
   BASE_CATEGORIES, categoryMod, charValue, computeBudget, computeDerived, damageBonus, elementalRune, locationHP, powerRune, rollChar,
-  armorByLocation, gearById, kitWeaponSkills, runeCharTargets, runeValue, skillLines, skillTotal, spiritCombatDamage, takePassion, weaponsForSkill, withKit,
+  armorByLocation, chooseFavored, gearById, kitWeaponSkills, runeCharTargets, runeValue, skillLines, skillTotal, spiritCombatDamage, takePassion, weaponsForSkill, withKit,
 } from './calc'
 import type { Character } from './types'
 import { CHARS } from './types'
@@ -274,6 +274,19 @@ describe('occupation starting kit', () => {
     // Removing kit items afterwards sticks: loading again doesn't re-add them.
     const trimmed = { ...loaded, gear: [] }
     expect(normalize(trimmed).gear).toEqual([])
+  })
+})
+
+describe('favored passions', () => {
+  it('takes one, switches cleanly, and undoes on a second click', () => {
+    let c = make(c => { c.passions = [{ uid: 'a', kind: 'Loyalty', target: 'unit', value: 95 }] })
+    c = chooseFavored(c, 'occupation', { kind: 'Honor', target: '' }, uid)
+    expect(c.passions.map(p => `${p.kind}${p.value}`)).toEqual(['Loyalty95', 'Honor60'])
+    c = chooseFavored(c, 'occupation', { kind: 'Loyalty', target: 'unit' }, uid) // switch: Honor removed, unit capped at 100
+    expect(c.passions.map(p => `${p.kind}${p.value}`)).toEqual(['Loyalty100'])
+    c = chooseFavored(c, 'occupation', { kind: 'Loyalty', target: 'unit' }, uid) // same again: undo
+    expect(c.passions.map(p => `${p.kind}${p.value}`)).toEqual(['Loyalty95'])
+    expect(c.favored.occupation).toBeUndefined()
   })
 })
 

@@ -667,3 +667,42 @@ export function kitWeaponSkills(c: Character): SkillKey[] {
 }
 
 export const weaponsForSkill = (key: SkillKey): GearItem[] => GEAR.filter(g => g.skill === key)
+
+// ---------------------------------------------------------------------------
+// Favored passions (occupation p.63, cult p.74): take one, new at 60% or +10% to one already held
+
+const samePassion = (a: { kind: string; target: string }, b: { kind: string; target: string }) =>
+  a.kind === b.kind && a.target.toLowerCase() === b.target.toLowerCase()
+
+/** Undo the favored passion taken for a slot: remove it if it was new, or take back its +10%. */
+export function undoFavored(c: Character, slot: 'occupation' | 'cult'): Character {
+  const t = c.favored[slot]
+  if (!t) return c
+  const passions = t.mode === 'new'
+    ? c.passions.filter(p => p.uid !== t.uid)
+    : c.passions.map(p => (p.uid === t.uid ? { ...p, value: p.value - (t.delta ?? RULES.passionRepeat) } : p))
+  return { ...c, passions, favored: { ...c.favored, [slot]: undefined } }
+}
+
+/** Take a favored passion for a slot, replacing any earlier pick; picking the same one again undoes it. */
+export function chooseFavored(c: Character, slot: 'occupation' | 'cult', option: PassionOption, newUid: () => string): Character {
+  const target = resolveKey(c, option.target)
+  const was = c.favored[slot]
+  const cleared = undoFavored(c, slot)
+  if (was && samePassion(was, { kind: option.kind, target })) return cleared
+  const held = cleared.passions.find(p => samePassion(p, { kind: option.kind, target }))
+  if (held) {
+    const delta = Math.max(0, Math.min(100, held.value + RULES.passionRepeat) - held.value)
+    return {
+      ...cleared,
+      passions: cleared.passions.map(p => (p === held ? { ...p, value: p.value + delta } : p)),
+      favored: { ...cleared.favored, [slot]: { kind: option.kind, target, uid: held.uid, mode: 'bonus', delta } },
+    }
+  }
+  const uid = newUid()
+  return {
+    ...cleared,
+    passions: [...cleared.passions, { uid, kind: option.kind, target, value: RULES.basePassion }],
+    favored: { ...cleared.favored, [slot]: { kind: option.kind, target, uid, mode: 'new' } },
+  }
+}

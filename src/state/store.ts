@@ -31,6 +31,7 @@ export function newCharacter(): Character {
     passions: [],
     reputation: 0,
     historySkills: [],
+    favored: {},
     occupation: '',
     occupationPicks: {},
     cult: '',
