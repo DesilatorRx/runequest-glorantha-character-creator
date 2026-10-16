@@ -67,6 +67,11 @@ points, and spirit and Rune magic. Foundry computes category modifiers and hit p
 chance plus points gained, so totals match the app. Item ids follow Foundry's `rqid` scheme, so the system links them
 to its compendium descriptions. Not exported yet: sorcery. Please report anything that doesn't import cleanly.
 
+A weekly GitHub Action (`Foundry compatibility`) downloads the latest Foundry RQG system and compendium releases and
+checks that the item types, field names, occupation codes, and compendium ids the export relies on still exist. If any
+disappear, it opens an issue. To run it locally: `node scripts/check-foundry.ts` (Node 24). After confirming a new
+Foundry version works, update `testedVersion` in `src/data/foundryMap.ts`.
+
 ## Running locally
 
 ```bash
