@@ -33,6 +33,26 @@ It needs no install and no account. Adventurers are saved in your browser, and y
 - **Equipment:** weapons, armor (per hit location) and over 160 general items, bought with your occupation's starting wealth.
 - **Print or save as PDF** from a clean adventurer sheet. Works on desktop and phone.
 
+## JSON export format
+
+**Export JSON** saves two things:
+
+- The adventurer's **choices** (rolls, runes, homeland, occupation and cult picks, bonuses, gear). The app rebuilds every number from these when you import the file.
+- A **`sheet`** object with every **final value**, for VTTs and other tools. The app ignores it on import.
+
+The `sheet` (format `rqg-character-creator/sheet`, version 1) contains:
+
+| Field | What's in it |
+| --- | --- |
+| `identity` | name, age, homeland, region, occupation, cult, deity |
+| `characteristics` | STR, CON, SIZ, DEX, INT, POW, CHA |
+| `attributes` | hit points, magic points, healing rate, damage bonus, spirit combat damage, DEX/SIZ strike ranks, max ENC, ENC carried, move, Rune points, Reputation |
+| `runes` | every rune's value in % |
+| `hitLocations` | hit points and armor for each location |
+| `skills` | for each skill: `value`, `valueLoaded` (with encumbrance penalties), and `sources` (base, category modifier, homeland, occupation, cult, history, personal) |
+| `passions`, `weapons`, `magic`, `equipment` | final values; weapons include skill %, damage, strike rank, and HP |
+| `issues` | any remaining rule problems; `complete` is true when there are no errors |
+
 ## Running locally
 
 ```bash

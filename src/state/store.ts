@@ -60,7 +60,9 @@ export function homelandPassions(homeland: string): Passion[] {
 
 /** Fill any fields missing from older or hand-edited saves, and hand out a starting kit the save never received. */
 export function normalize(raw: Partial<Character>): Character {
-  const c = fillDefaults(raw)
+  // An exported file carries a computed `sheet`; drop it so the adventurer is rebuilt from its choices.
+  const { sheet: _sheet, ...choices } = raw as Partial<Character> & { sheet?: unknown }
+  const c = fillDefaults(choices)
   return c.occupation && c.kitFor === undefined ? withKit(c, c.occupation, uid) : c
 }
 

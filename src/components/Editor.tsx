@@ -6,6 +6,7 @@ import {
 import type { Character } from '../engine/types'
 import { CHARS } from '../engine/types'
 import { validate, type StepId } from '../engine/validate'
+import { exportCharacter } from '../engine/export'
 import { downloadJson } from '../state/storage'
 import { CharacteristicsStep } from './steps/CharacteristicsStep'
 import { ConceptStep } from './steps/ConceptStep'
@@ -71,7 +72,7 @@ export function Editor({ c, set, onClose }: { c: Character; set: Setter; onClose
         <strong className="topbar-name">{c.name || 'New adventurer'}</strong>
         {homelandOf(c) && <span className="pill">{homelandOf(c)!.name}</span>}
         <span className="spacer" />
-        <button type="button" onClick={() => { track('export-json', 'Exported an adventurer'); downloadJson(`${(c.name || 'adventurer').replace(/[^\w-]+/g, '_')}.rqg.json`, c) }}>Export JSON</button>
+        <button type="button" onClick={() => { track('export-json', 'Exported an adventurer'); downloadJson(`${(c.name || 'adventurer').replace(/[^\w-]+/g, '_')}.rqg.json`, exportCharacter(c)) }}>Export JSON</button>
         <button type="button" onClick={() => { setStep('sheet'); setTimeout(() => window.print(), 50) }}>Print</button>
       </header>
 
