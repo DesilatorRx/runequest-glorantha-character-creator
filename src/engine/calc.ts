@@ -427,7 +427,7 @@ export function computeDerived(c: Character) {
     dexSR: dexSR(c),
     sizSR: sizSR(c),
     maxEnc: maxEnc(c),
-    move: 8,
+    move: Math.max(0, 8 - encOver(c)),
     runePoints: c.cult ? RULES.startingRunePoints + c.powSacrifice + RULES.olderRunePoints * extraDecades(c) : 0,
     reputation: RULES.startingReputation + (occupationOf(c)?.reputation ?? 0) + c.reputation,
   }
@@ -446,8 +446,27 @@ export function armorByLocation(c: Character): Record<Location, number> {
   return out
 }
 
+/** ENC of everything carried or worn (stowed items on a mount or at home don't count). Book p.150. */
 export const encCarried = (c: Character) =>
-  c.gear.reduce((s, g) => s + (gearById(g.id)?.enc ?? 0) * g.qty, 0)
+  Math.round(c.gear.reduce((s, g) => s + (g.stowed ? 0 : (gearById(g.id)?.enc ?? 0) * g.qty), 0) * 100) / 100
+export const encStowed = (c: Character) =>
+  Math.round(c.gear.reduce((s, g) => s + (g.stowed ? (gearById(g.id)?.enc ?? 0) * g.qty : 0), 0) * 100) / 100
+/** Points of ENC carried over the maximum (whole points; partial points round up). */
+export const encOver = (c: Character) => Math.max(0, Math.ceil(encCarried(c) - maxEnc(c)))
+
+const ENC_CATEGORIES: SkillCategory[] = ['agility', 'manipulation', 'stealth', 'melee', 'missile', 'shield']
+
+/**
+ * A skill as it works with the current load (book pp.150–151): each point over max ENC costs −5% to Agility,
+ * Manipulation, Stealth, and weapon skills; Dodge also loses 1% per point of ENC carried up to the maximum.
+ */
+export function loadedSkill(c: Character, line: SkillLine): number {
+  const over = encOver(c)
+  let v = line.total
+  if (ENC_CATEGORIES.includes(line.skill.category)) v -= 5 * over
+  if (line.skill.id === 'dodge') v -= Math.floor(Math.min(encCarried(c), maxEnc(c)))
+  return Math.max(0, v)
+}
 
 // ---------------------------------------------------------------------------
 // Budgets

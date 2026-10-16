@@ -1,6 +1,6 @@
 import {
   CATEGORY_NAMES, LOCATION_NAMES, LOCATION_ROLLS, armorByLocation, charValue, computeDerived,
-  birthDate, commonRuneSpells, computeBudget, encCarried, occupationKit, remaining, cultOf, gearById, homelandOf, knownSpirit, occupationOf, regionOf, runeSpellById, runeValue, skillLines,
+  birthDate, commonRuneSpells, computeBudget, encCarried, encOver, loadedSkill, occupationKit, remaining, cultOf, gearById, homelandOf, knownSpirit, occupationOf, regionOf, runeSpellById, runeValue, skillLines,
   sorceryLines, spiritSpellById,
 } from '../../engine/calc'
 import type { Character, SkillCategory } from '../../engine/types'
@@ -18,7 +18,9 @@ export function SheetStep({ c, issues }: { c: Character; issues: Issue[] }) {
   const cult = cultOf(c)
   const errors = issues.filter(i => i.severity === 'error')
   const warnings = issues.filter(i => i.severity === 'warning')
-  const weapons = c.gear.map(g => gearById(g.id)).filter(g => g && (g.category === 'melee' || g.category === 'missile' || g.category === 'shield'))
+  const weaponGear = c.gear.filter(g => ['melee', 'missile', 'shield'].includes(gearById(g.id)?.category ?? ''))
+  const weapons = weaponGear.map(g => gearById(g.id))
+  const over = encOver(c)
   const cats = Object.keys(CATEGORY_NAMES) as SkillCategory[]
 
   return (
@@ -121,8 +123,8 @@ export function SheetStep({ c, issues }: { c: Character; issues: Issue[] }) {
                   const sr = w!.category === 'missile' ? d.dexSR : d.dexSR + d.sizSR + (w!.sr ?? 0)
                   return (
                     <tr key={i}>
-                      <td>{w!.name}</td>
-                      <td className="num">{skill?.total ?? '—'}</td>
+                      <td>{w!.name}{weaponGear[i].stowed && <span className="faint small"> (on mount)</span>}</td>
+                      <td className="num">{skill ? loadedSkill(c, skill) : '—'}</td>
                       <td className="mono">{w!.damage}{w!.category === 'melee' && d.damageBonus !== '—' ? ` ${d.damageBonus}` : ''}</td>
                       <td className="num">{sr}</td>
                       <td className="num">{w!.hp}</td>
@@ -144,7 +146,7 @@ export function SheetStep({ c, issues }: { c: Character; issues: Issue[] }) {
                 <div key={cat} className="skill-block">
                   <h4>{CATEGORY_NAMES[cat]}</h4>
                   <ul className="plain small">
-                    {rows.map(l => <li key={l.key} className="row nowrap"><span><SkillPop c={c} line={l} /></span><span className="spacer" /><span className="mono">{l.total}%</span></li>)}
+                    {rows.map(l => <li key={l.key} className="row nowrap"><span><SkillPop c={c} line={l} /></span><span className="spacer" /><span className="mono">{loadedSkill(c, l) !== l.total ? <><span className="faint" title="Before encumbrance">{l.total}→</span><span className="warn" title="With what you carry">{loadedSkill(c, l)}%</span></> : `${l.total}%`}</span></li>)}
                   </ul>
                 </div>
               )
@@ -156,7 +158,11 @@ export function SheetStep({ c, issues }: { c: Character; issues: Issue[] }) {
           <h3>Equipment</h3>
           <p className="small">{c.gear.map(g => `${gearById(g.id)?.name ?? g.id}${g.qty > 1 ? ` ×${g.qty}` : ''}`).join(', ') || '—'}</p>
           {occupationKit(c)?.other.length ? <p className="small dim">Also: {occupationKit(c)!.other.join('; ')}</p> : null}
-          <p className="small dim">Silver left: {Math.round(remaining(computeBudget(c).silver) * 10) / 10} L · ENC carried {encCarried(c)} of {d.maxEnc}</p>
+          <p className="small dim">
+            Silver left: {Math.round(remaining(computeBudget(c).silver) * 10) / 10} L · ENC carried {encCarried(c)} of {d.maxEnc}
+            {over > 0 && <span className="bad"> ({over} over: −{over} MOV, −{5 * over}% to Agility, Manipulation, Stealth, and weapon skills)</span>}
+            {c.gear.some(g => g.stowed) && <> · On mount or at home: {c.gear.filter(g => g.stowed).map(g => gearById(g.id)?.name).join(', ')}</>}
+          </p>
         </section>
 
         {(c.info.heirloom || c.info.scars || c.info.father || c.info.mother || c.info.tribe) && (

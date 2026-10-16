@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { newCharacter, normalize, uid } from '../state/store'
 import {
   BASE_CATEGORIES, categoryMod, charValue, computeBudget, computeDerived, damageBonus, elementalRune, locationHP, powerRune, rollChar,
-  armorByLocation, chooseFavored, gearById, kitWeaponSkills, runeCharTargets, runeValue, skillLines, skillTotal, spiritCombatDamage, takePassion, weaponsForSkill, withKit,
+  armorByLocation, chooseFavored, encCarried, encOver, gearById, loadedSkill, maxEnc, kitWeaponSkills, runeCharTargets, runeValue, skillLines, skillTotal, spiritCombatDamage, takePassion, weaponsForSkill, withKit,
 } from './calc'
 import type { Character } from './types'
 import { CHARS } from './types'
@@ -287,6 +287,32 @@ describe('favored passions', () => {
     c = chooseFavored(c, 'occupation', { kind: 'Loyalty', target: 'unit' }, uid) // same again: undo
     expect(c.passions.map(p => `${p.kind}${p.value}`)).toEqual(['Loyalty95'])
     expect(c.favored.occupation).toBeUndefined()
+  })
+})
+
+describe('encumbrance (book pp.150–151)', () => {
+  const vasana = (gear: [string, boolean?][]) => make(c => {
+    c.chars = { str: 16, con: 12, siz: 10, dex: 11, int: 15, pow: 15, cha: 19 }
+    c.gear = gear.map(([id, stowed], i) => ({ uid: String(i), id, qty: 1, stowed }))
+  })
+  const dodge = (c: Character) => loadedSkill(c, skillLines(c).find(l => l.key === 'dodge')!)
+  const armor: [string][] = [['disk_plate'], ['studded_skirts'], ['bronze_greaves'], ['bronze_vambraces'], ['closed_helm']]
+
+  it('takes 1% off Dodge per ENC carried, and 5% per point over max', () => {
+    const c = vasana([...armor, ['broadsword'], ['shield_medium']])
+    expect(maxEnc(c)).toBe(14)
+    expect(encCarried(c)).toBe(11)
+    expect(dodge(c)).toBe(22 - 11)
+    const heavy = vasana([...armor, ['broadsword'], ['shield_medium'], ['battle_axe'], ['composite_bow']]) // 15: one over
+    expect(encOver(heavy)).toBe(1)
+    expect(dodge(heavy)).toBe(22 - 14 - 5)
+    expect(computeDerived(heavy).move).toBe(7)
+  })
+
+  it("doesn't count gear stowed on a mount", () => {
+    const c = vasana([...armor, ['broadsword'], ['shield_medium'], ['battle_axe', true], ['composite_bow', true]])
+    expect(encCarried(c)).toBe(11)
+    expect(encOver(c)).toBe(0)
   })
 })
 

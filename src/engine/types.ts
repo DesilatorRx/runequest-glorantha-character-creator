@@ -214,6 +214,8 @@ export interface OwnedGear {
   kit?: boolean
   /** For a free starting weapon: the trained skill it was taken for (one weapon per skill). */
   kitSkill?: SkillKey
+  /** Kept on a mount, in camp, or at home rather than carried: doesn't count toward ENC. */
+  stowed?: boolean
 }
 export interface LearnedSpirit { id: string; points: number }
 

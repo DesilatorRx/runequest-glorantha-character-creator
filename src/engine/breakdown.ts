@@ -2,7 +2,7 @@
 
 import {
   CATEGORY_NAMES, CHAR_NAMES, RUNE_NAMES, categoryModParts, charUncapped, charValue, computeDerived,
-  dexSR, extraDecades, healingRate, homelandOf, hpMods, maxEnc, occupationOf, opposite, rankedElementals, regionOf,
+  dexSR, encCarried, encOver, extraDecades, loadedSkill, healingRate, homelandOf, hpMods, maxEnc, occupationOf, opposite, rankedElementals, regionOf,
   runeCharTargets, runeValue, sizSR, type SkillLine,
 } from './calc'
 import { RULES } from './rules'
@@ -75,6 +75,8 @@ export function skillBreakdown(c: Character, l: SkillLine): Breakdown {
   const raw = l.base + l.catMod + l.homeland + l.occupation + l.cult + l.history + l.personal
   if (l.capped) rows.push({ label: `Over the ${RULES.maxStartingSkill}% starting cap`, value: signed(l.total - raw), dim: true })
   rows.push(total(l.name, `${l.total}%`))
+  const loaded = loadedSkill(c, l)
+  if (loaded !== l.total) rows.push({ label: `With what you carry (ENC ${encCarried(c)} of ${maxEnc(c)})`, value: `${loaded}%`, dim: true })
   const note = l.base === 0 && l.catMod === 0 && raw === 0 ? 'A 00% skill gets no category modifier until something raises it.' : undefined
   return { rows, note }
 }
@@ -95,8 +97,19 @@ export function derivedBreakdown(c: Character, key: DerivedKey): Breakdown {
     case 'spiritDamage': return { rows: [{ label: 'POW + CHA', value: `${v('pow')} + ${v('cha')} = ${v('pow') + v('cha')}` }, total('Spirit combat damage', d.spiritDamage)] }
     case 'dexSR': return { rows: [{ label: 'DEX', value: String(v('dex')) }, total('DEX strike rank', dexSR(c))], note: 'Added to every melee and missile attack.' }
     case 'sizSR': return { rows: [{ label: 'SIZ', value: String(v('siz')) }, total('SIZ strike rank', sizSR(c))], note: 'Added to melee attacks only.' }
-    case 'maxEnc': return { rows: [{ label: 'Average of STR and CON', value: String(Math.round((v('str') + v('con')) / 2)) }, { label: 'Limited to STR', value: String(v('str')) }, total('Max ENC', maxEnc(c))] }
-    case 'move': return { rows: [total('Movement', d.move)], note: '8 units of 3 meters per melee round for humans.' }
+    case 'maxEnc': return {
+      rows: [
+        { label: 'Average of STR and CON', value: String(Math.round((v('str') + v('con')) / 2)) },
+        { label: 'Limited to STR', value: String(v('str')) },
+        total('Max ENC', maxEnc(c)),
+        { label: 'Carried now', value: String(encCarried(c)), dim: true },
+      ],
+      note: 'Stowed gear on a mount or at home does not count. Coins: 160 per ENC.',
+    }
+    case 'move': return {
+      rows: [{ label: 'Human', value: '8' }, ...(encOver(c) ? [row('Over max ENC', -encOver(c))] : []), total('Movement', d.move)],
+      note: 'Units of 3 meters per melee round. Each point of ENC over your maximum costs 1.',
+    }
     case 'runePoints': {
       const rows: Row[] = [{ label: 'Initiate', value: String(c.cult ? RULES.startingRunePoints : 0) }]
       if (c.powSacrifice) rows.push(row('POW sacrificed', c.powSacrifice))

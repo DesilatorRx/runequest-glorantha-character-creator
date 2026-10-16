@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { GEAR } from '../../data'
 import {
-  LOCATION_NAMES, computeBudget, computeDerived, encCarried, gearById, homelandOf, kitGear, kitWeaponSkills, occupationKit, occupationOf, skillById, skillName,
+  LOCATION_NAMES, computeBudget, encCarried, encOver, encStowed, maxEnc, gearById, homelandOf, kitGear, kitWeaponSkills, occupationKit, occupationOf, skillById, skillName,
   weaponsForSkill,
 } from '../../engine/calc'
-import type { GearCategory, GearItem } from '../../engine/types'
+import type { Character, GearCategory, GearItem } from '../../engine/types'
 import { uid } from '../../state/store'
 import { PoolBadge, Section, Stepper, type StepProps } from '../ui'
 
@@ -28,7 +28,6 @@ export function EquipmentStep({ c, set }: StepProps) {
   const [cat, setCat] = useState<GearCategory>('melee')
   const [query, setQuery] = useState('')
   const b = computeBudget(c)
-  const d = computeDerived(c)
   const cultural = new Set(homelandOf(c)?.culturalWeapons ?? [])
   // Buying merges with a bought stack of the same item, never with a free kit item.
   const add = (id: string) => set(ch => {
@@ -42,8 +41,13 @@ export function EquipmentStep({ c, set }: StepProps) {
     <div className="stack">
       <StartingKit c={c} set={set} />
 
-      <Section title="Owned" aside={<span className="row"><PoolBadge label="Silver left" total={b.silver.total} spent={b.silver.spent} unit=" L" /><PoolBadge label="ENC left" total={d.maxEnc} spent={encCarried(c)} /></span>}>
+      <Section title="Owned" aside={<span className="row"><PoolBadge label="Silver left" total={b.silver.total} spent={b.silver.spent} unit=" L" /><EncBadge c={c} /></span>}>
         {c.gear.length === 0 && <p className="dim">Nothing yet. Your occupation sets your starting wealth{occupationOf(c)?.wealthNote ? ` (${occupationOf(c)!.wealthNote})` : ''}.</p>}
+        <p className="small dim">
+          Only what you carry or wear counts toward ENC. Mark spare weapons and gear <em>On mount</em> to leave them on your
+          riding animal, in camp, or at home. Each point over your maximum costs 1 MOV and −5% to Agility, Manipulation,
+          Stealth, and weapon skills; Dodge also drops 1% per point of ENC you carry.
+        </p>
         <ul className="pick-list">
           {c.gear.map(g => {
             const item = gearById(g.id)
@@ -55,6 +59,12 @@ export function EquipmentStep({ c, set }: StepProps) {
                   <span className="faint small">{stats(item)}</span>
                 </span>
                 <span className="row nowrap">
+                  {item.enc > 0 && <span className="mono small faint">ENC {Math.round(item.enc * g.qty * 100) / 100}</span>}
+                  <button type="button" className={`small carry-toggle ${g.stowed ? 'stowed' : ''}`} aria-pressed={!g.stowed}
+                    title={g.stowed ? 'Kept on your mount or at home; not counted toward ENC' : 'Carried or worn; counts toward ENC'}
+                    onClick={() => set(ch => ({ ...ch, gear: ch.gear.map(x => (x.uid === g.uid ? { ...x, stowed: !x.stowed } : x)) }))}>
+                    {g.stowed ? 'On mount' : 'Carried'}
+                  </button>
                   <span className="mono small dim">{g.kit ? 'free' : lunars(item.cost * g.qty)}</span>
                   <Stepper label={item.name} value={g.qty} min={0} onChange={v => set(ch => ({
                     ...ch, gear: v > 0 ? ch.gear.map(x => (x.uid === g.uid ? { ...x, qty: v } : x)) : ch.gear.filter(x => x.uid !== g.uid),
@@ -159,5 +169,18 @@ function StartingKit({ c, set }: StepProps) {
         </>
       )}
     </Section>
+  )
+}
+
+/** ENC carried against the maximum, red when over. */
+function EncBadge({ c }: { c: Character }) {
+  const carried = encCarried(c), max = maxEnc(c), over = encOver(c), stowed = encStowed(c)
+  return (
+    <span className="pool-badge" title={stowed ? `${stowed} more ENC stowed on your mount or at home` : undefined}>
+      <span className="dim">ENC carried</span>{' '}
+      <span className={`mono ${over ? 'bad' : carried === max ? 'warn' : 'good'}`}>{carried}</span>
+      <span className="faint mono"> / {max}</span>
+      {over > 0 && <span className="bad small"> (+{over} over)</span>}
+    </span>
   )
 }

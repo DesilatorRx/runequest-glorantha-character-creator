@@ -250,3 +250,5 @@ ul.plain li + li { margin-top: 0.2rem; }
 @media print { .pop-trigger { border-bottom: 0; } }
 .kit-skill { width: 12rem; flex: none; }
 .kit-other li::before { content: '• '; color: var(--accent); }
+.carry-toggle { padding: 0.1em 0.6em; }
+.carry-toggle.stowed { color: var(--text-faint); border-style: dashed; }

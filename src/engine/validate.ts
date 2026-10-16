@@ -1,5 +1,5 @@
 import {
-  CHAR_NAMES, RUNE_NAMES, availableSpiritSpells, isPhilosopher, knownSpirit, sorceryCultOf, sorceryLines, sorceryMasteries, charBase, charUncapped, cultGrants, cultStartingKeys, occupationGrants, regionOf, charRange, charValue, computeBudget, cultOf, homelandOf, occupationOf, opposite,
+  CHAR_NAMES, RUNE_NAMES, availableSpiritSpells, encOver, maxEnc, isPhilosopher, knownSpirit, sorceryCultOf, sorceryLines, sorceryMasteries, charBase, charUncapped, cultGrants, cultStartingKeys, occupationGrants, regionOf, charRange, charValue, computeBudget, cultOf, homelandOf, occupationOf, opposite,
   remaining, rolledTotal, runeValue, runeSpellById, skillChoices, skillLines, skillName, spiritSpellById, topUpAllowed,
 } from './calc'
 import { SORCERY_RULES, maxMasteries } from '../data/sorcery'
@@ -188,6 +188,8 @@ export function validate(c: Character): Issue[] {
   }
 
   // Equipment
+  const over = encOver(c)
+  if (over > 0) warn('equipment', `You carry ${over} ENC over your maximum of ${maxEnc(c)}: −${over} MOV and −${5 * over}% to Agility, Manipulation, Stealth, and weapon skills. Mark spare gear "On mount" to stow it.`)
   const silver = remaining(b.silver)
   if (silver < 0) err('equipment', `Equipment costs ${-silver} L more than you have.`)
 
