@@ -71,6 +71,7 @@ export function resolveKey(c: Character, key: SkillKey): SkillKey {
   const h = homelandOf(c)
   return key
     .replace('{homeland}', h?.culture ?? 'Homeland')
+    .replace('{place}', h?.place ?? h?.name ?? 'Homeland')
     .replace('{language}', h?.language ?? 'Own')
     .replace('{cult}', cultOf(c)?.name ?? 'Cult')
     .replace('{deity}', cultOf(c)?.deity ?? cultOf(c)?.name ?? 'Deity')
@@ -263,7 +264,9 @@ export interface SkillLine {
 export function skillBase(c: Character, s: Skill, key?: SkillKey): number {
   if (s.baseOther !== undefined && key) {
     const subject = parseKey(key).subject
-    const own = homelandOf(c)?.culture
+    const h = homelandOf(c)
+    // Customs is your own culture's; Homeland Lore is your own homeland's (book p.168 / p.177).
+    const own = s.id === 'homeland_lore' ? h?.place ?? h?.name : h?.culture
     if (subject && own && subject.toLowerCase() !== own.toLowerCase()) return s.baseOther
   }
   return typeof s.base === 'number' ? s.base : charValue(c, s.base.char) * s.base.mult
@@ -325,7 +328,7 @@ export function skillLines(c: Character): SkillLine[] {
   const keys = new Set<SkillKey>()
   for (const s of SKILLS) if (!s.specify && !isWeaponSkill(s)) keys.add(s.id)
   // Everyone speaks their own language and knows their own customs and homeland.
-  for (const k of ['speak_own:{language}', 'customs:{homeland}', 'homeland_lore:{homeland}']) keys.add(resolveKey(c, k))
+  for (const k of ['speak_own:{language}', 'customs:{homeland}', 'homeland_lore:{place}']) keys.add(resolveKey(c, k))
   for (const g of [...h, ...o, ...cu, ...hi, ...p]) keys.add(g.key)
   for (const k of c.extraSkills) keys.add(k)
   for (const g of c.gear) {

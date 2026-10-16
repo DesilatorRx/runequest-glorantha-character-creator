@@ -42,7 +42,7 @@ export const RULES = {
   cultSkillBonuses: [20, 15],
   cultFixedBonuses: [
     { skill: 'worship:{deity}', bonus: 20 },
-    { skill: 'cult_lore:{cult}', bonus: 15 },
+    { skill: 'cult_lore:{deity}', bonus: 15 },
     { skill: 'meditate', bonus: 5 },
   ],
   /** An initiate needs at least one of the cult's runes at this value. */

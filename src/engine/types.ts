@@ -68,6 +68,8 @@ export interface Homeland {
   passions: PassionDef[]
   cults: string[]
   occupations: string[]
+  /** The place named in Homeland Lore (e.g. 'Prax' for every Praxian tribe); defaults to the homeland name. */
+  place?: string
   /** Defaults to 'wiki' (Chaosium's RuneQuest wiki). */
   source?: DataSource
   /** Homeland characteristic modifiers (book p.53), e.g. Bison Riders +2 SIZ, −2 DEX. */

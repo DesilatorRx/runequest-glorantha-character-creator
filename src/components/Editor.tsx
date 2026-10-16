@@ -7,6 +7,7 @@ import type { Character } from '../engine/types'
 import { CHARS } from '../engine/types'
 import { validate, type StepId } from '../engine/validate'
 import { exportCharacter } from '../engine/export'
+import { buildFoundryActor } from '../engine/foundry'
 import { downloadJson } from '../state/storage'
 import { CharacteristicsStep } from './steps/CharacteristicsStep'
 import { ConceptStep } from './steps/ConceptStep'
@@ -73,6 +74,10 @@ export function Editor({ c, set, onClose }: { c: Character; set: Setter; onClose
         {homelandOf(c) && <span className="pill">{homelandOf(c)!.name}</span>}
         <span className="spacer" />
         <button type="button" onClick={() => { track('export-json', 'Exported an adventurer'); downloadJson(`${(c.name || 'adventurer').replace(/[^\w-]+/g, '_')}.rqg.json`, exportCharacter(c)) }}>Export JSON</button>
+        <button type="button" title="Actor file for the Foundry VTT RuneQuest system: right-click an actor, Import Data" onClick={() => {
+          track('export-foundry', 'Exported to Foundry VTT')
+          downloadJson(`${(c.name || 'adventurer').replace(/[^\w-]+/g, '_')}.foundry.json`, buildFoundryActor(c))
+        }}>Foundry VTT</button>
         <button type="button" onClick={() => { setStep('sheet'); setTimeout(() => window.print(), 50) }}>Print</button>
       </header>
 

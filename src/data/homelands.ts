@@ -25,7 +25,7 @@ function praxTribe(t: {
   charMods?: Partial<Record<CharId, number>>; regions?: HomelandRegion[]; source?: DataSource
 }): Homeland {
   return {
-    id: t.id, name: t.name, culture: t.culture, language: 'Praxian', rune: t.rune, hint: t.hint, source: t.source ?? 'book',
+    id: t.id, name: t.name, place: 'Prax', culture: t.culture, language: 'Praxian', rune: t.rune, hint: t.hint, source: t.source ?? 'book',
     skills: [
       { skill: 'herd', bonus: 30 }, { skill: 'peaceful_cut', bonus: 15 }, { skill: `ride:${t.mount}`, bonus: 35 },
       { skill: 'spirit_combat', bonus: 20 }, { skill: 'survival', bonus: 10 }, { skill: 'speak_other:Tradetalk', bonus: 10 },

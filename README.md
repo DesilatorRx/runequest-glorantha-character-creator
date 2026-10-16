@@ -53,6 +53,20 @@ The `sheet` (format `rqg-character-creator/sheet`, version 1) contains:
 | `passions`, `weapons`, `magic`, `equipment` | final values; weapons include skill %, damage, strike rank, and HP |
 | `issues` | any remaining rule problems; `complete` is true when there are no errors |
 
+## Foundry VTT
+
+**Foundry VTT** (top bar) saves an actor file for the RuneQuest: Roleplaying in Glorantha system for Foundry
+(system id `rqg`, built against version 6.1.1).
+
+1. In Foundry, create a new **Character** actor.
+2. Right-click it in the Actors sidebar and choose **Import Data**.
+3. Pick the downloaded `.foundry.json` file.
+
+The file includes characteristics, runes, skills, passions, hit locations, weapons, armor, gear, the cult with its Rune
+points, and spirit and Rune magic. Foundry computes category modifiers and hit points itself. Skills are sent as base
+chance plus points gained, so totals match the app. Item ids follow Foundry's `rqid` scheme, so the system links them
+to its compendium descriptions. Not exported yet: sorcery. Please report anything that doesn't import cleanly.
+
 ## Running locally
 
 ```bash

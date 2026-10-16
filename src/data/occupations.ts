@@ -85,7 +85,7 @@ export const OCCUPATIONS: Occupation[] = [
     id: 'farmer', name: 'Farmer', source: 'book', standard: 'free', reputation: 5,
     hint: 'Works local fields and livestock with an ox-drawn plow.',
     skills: [
-      { skill: 'homeland_lore:{homeland}', bonus: 15 }, { choose: ['jump', 'climb'], bonus: 10, label: 'Jump or Climb' },
+      { skill: 'homeland_lore:{place}', bonus: 15 }, { choose: ['jump', 'climb'], bonus: 10, label: 'Jump or Climb' },
       { skill: 'farm', bonus: 30 }, { skill: 'craft:Any', bonus: 15 }, { skill: 'first_aid', bonus: 10 }, { skill: 'scan', bonus: 10 },
       { skill: 'herd', bonus: 15 }, cultural(15), { skill: 'manage_household', bonus: 30 }, shield(15),
     ],
@@ -121,7 +121,7 @@ export const OCCUPATIONS: Occupation[] = [
     hint: 'Tends the community\'s herd beasts, on foot or mounted.',
     skills: [
       { choose: ['jump', 'climb'], bonus: 10, label: 'Jump or Climb' }, { skill: 'scan', bonus: 10 }, { skill: 'animal_lore', bonus: 10 },
-      { skill: 'track', bonus: 10 }, { skill: 'homeland_lore:{homeland}', bonus: 10 }, cultural(30, 'cultural missile weapon'),
+      { skill: 'track', bonus: 10 }, { skill: 'homeland_lore:{place}', bonus: 10 }, cultural(30, 'cultural missile weapon'),
       { skill: 'first_aid', bonus: 10 }, cultural(10), { skill: 'herd', bonus: 30 }, shield(10), { skill: 'peaceful_cut', bonus: 30 },
     ],
     wealth: 120, wealthNote: 'Herd animals worth 120 L; staff, herding dog or shadowcat', income: '60 L', ransom: 500,
@@ -132,7 +132,7 @@ export const OCCUPATIONS: Occupation[] = [
     id: 'hunter', name: 'Hunter', source: 'book', standard: 'poor',
     hint: 'Stalks and traps wild animals for meat and hides.',
     skills: [
-      { skill: 'animal_lore', bonus: 30 }, { skill: 'scan', bonus: 10 }, { skill: 'homeland_lore:{homeland}', bonus: 10 },
+      { skill: 'animal_lore', bonus: 30 }, { skill: 'scan', bonus: 10 }, { skill: 'homeland_lore:{place}', bonus: 10 },
       { skill: 'track', bonus: 30 }, { skill: 'conceal', bonus: 10 }, { skill: 'hide', bonus: 10 }, { skill: 'listen', bonus: 10 },
       cultural(30, 'cultural missile weapon'),
     ],
@@ -183,7 +183,7 @@ export const OCCUPATIONS: Occupation[] = [
     id: 'priest', name: 'Priest', source: 'book', standard: 'noble', reputation: 10,
     hint: 'Raised to temple service. Must meet the cult\'s God-talker, Rune Priest, or Rune Lord requirements; otherwise an assistant priest or a Rune Master\'s favored kin.',
     skills: [
-      { choose: 'cult', bonus: 10, label: 'one cult skill' }, { skill: 'cult_lore:{cult}', bonus: 30 }, { skill: 'dance', bonus: 10 },
+      { choose: 'cult', bonus: 10, label: 'one cult skill' }, { skill: 'cult_lore:{deity}', bonus: 30 }, { skill: 'dance', bonus: 10 },
       { skill: 'read_write:{language}', bonus: 10 }, { skill: 'orate', bonus: 10 }, { skill: 'manage_household', bonus: 10 },
       { skill: 'sing', bonus: 30 }, { skill: 'worship:{deity}', bonus: 30 }, { skill: 'meditate', bonus: 10 },
     ],
@@ -210,7 +210,7 @@ export const OCCUPATIONS: Occupation[] = [
     hint: 'Burglar, cutpurse, smuggler, or racketeer. Ransom may be none.',
     skills: [
       { skill: 'climb', bonus: 10 }, { skill: 'devise', bonus: 10 }, { skill: 'disguise', bonus: 30 }, { skill: 'sleight', bonus: 30 },
-      { skill: 'fast_talk', bonus: 30 }, { skill: 'hide', bonus: 10 }, { skill: 'homeland_lore:{homeland}', bonus: 10 },
+      { skill: 'fast_talk', bonus: 30 }, { skill: 'hide', bonus: 10 }, { skill: 'homeland_lore:{place}', bonus: 10 },
       { skill: 'move_quietly', bonus: 30 }, cultural(15),
     ],
     wealth: 30, wealthNote: '30 L coin; lock picks and tools, mask, rope and grapple, lantern', income: '30 L', ransom: 250,
