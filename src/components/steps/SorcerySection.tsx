@@ -1,6 +1,7 @@
 import { SORCERY_RULES, SORCERY_RUNES, SORCERY_SPELLS, SORCERY_TECHNIQUES, maxMasteries } from '../../data/sorcery'
 import { charValue, isPhilosopher, knownSpirit, sorceryCultOf, sorceryLines, sorceryMasteries } from '../../engine/calc'
 import type { Character } from '../../engine/types'
+import { SorcerySpellPop } from '../pops'
 import { PoolBadge, Section, type StepProps } from '../ui'
 
 type Field = 'runes' | 'techniques' | 'spells' | 'cultSpells'
@@ -75,7 +76,7 @@ export function SorcerySection({ c, set }: StepProps) {
             <tbody>
               {lines.map(l => (
                 <tr key={l.id}>
-                  <td>{l.name}</td><td className="num">+{l.bonus}</td><td className="num">{l.total}</td>
+                  <td><SorcerySpellPop id={l.id}>{l.name}</SorcerySpellPop></td><td className="num">+{l.bonus}</td><td className="num">{l.total}</td>
                   <td className="num">{l.costMultiplier > 1 ? <span className="warn">×{l.costMultiplier}</span> : '×1'}</td>
                 </tr>
               ))}

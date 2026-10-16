@@ -2,6 +2,7 @@ import { CHAR_NAMES, RUNE_NAMES, computeBudget, homelandOf, opposite, runeCharTa
 import { RULES } from '../../engine/rules'
 import type { ElementalRune, PowerRune, RuneId } from '../../engine/types'
 import { ELEMENTAL_RUNES, POWER_PAIRS } from '../../engine/types'
+import { RunePop } from '../pops'
 import { PoolBadge, Section, type StepProps } from '../ui'
 
 type Slot = 'primary' | 'secondary' | 'tertiary'
@@ -101,10 +102,10 @@ export function RunesStep({ c, set }: StepProps) {
             <thead><tr><th>Rune</th><th className="num">Bonus</th><th className="num">Value</th></tr></thead>
             <tbody>
               {ELEMENTAL_RUNES.map(r => (
-                <tr key={r}><td>{RUNE_NAMES[r]}</td><td className="num">{bonusInput(r)}</td><td className="num big-num">{runeValue(c, r)}%</td></tr>
+                <tr key={r}><td><RunePop c={c} r={r} /></td><td className="num">{bonusInput(r)}</td><td className="num big-num">{runeValue(c, r)}%</td></tr>
               ))}
               {POWER_PAIRS.flat().map(r => (
-                <tr key={r}><td>{RUNE_NAMES[r]}</td><td className="num">{bonusInput(r)}</td><td className="num big-num">{runeValue(c, r)}%</td></tr>
+                <tr key={r}><td><RunePop c={c} r={r} /></td><td className="num">{bonusInput(r)}</td><td className="num big-num">{runeValue(c, r)}%</td></tr>
               ))}
             </tbody>
           </table>

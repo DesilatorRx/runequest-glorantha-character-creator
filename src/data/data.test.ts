@@ -2,6 +2,11 @@ import { describe, expect, it } from 'vitest'
 import { RULES } from '../engine/rules'
 import type { SkillGrant, SkillKey } from '../engine/types'
 import { CULTS, GEAR, HOMELANDS, OCCUPATIONS, RUNE_SPELLS, SKILLS, SPIRIT_SPELLS } from '.'
+import { SKILL_INFO } from './abilityInfo'
+import { SORCERY_SPELLS } from './sorcery'
+import { SORCERY_SPELL_INFO } from './spellInfoSorcery'
+import { RUNE_SPELL_INFO } from './spellInfoRune'
+import { SPIRIT_SPELL_INFO } from './spellInfoSpirit'
 
 const skillIds = new Set(SKILLS.map(s => s.id))
 const skillExists = (key: SkillKey) => key.startsWith('@') || skillIds.has(key.split(':')[0])
@@ -39,5 +44,13 @@ describe('data integrity', () => {
 
   it('gives every cult enough skills for the initiation picks', () => {
     for (const c of CULTS) expect(c.skills.length).toBeGreaterThanOrEqual(RULES.cultSkillBonuses.length)
+  })
+
+  it('describes every skill and spell for the popovers', () => {
+    const missing = (ids: string[], info: Record<string, unknown>) => ids.filter(id => !info[id])
+    expect(missing(SKILLS.map(s => s.id), SKILL_INFO)).toEqual([])
+    expect(missing(SPIRIT_SPELLS.map(s => s.id), SPIRIT_SPELL_INFO)).toEqual([])
+    expect(missing(RUNE_SPELLS.map(s => s.id), RUNE_SPELL_INFO)).toEqual([])
+    expect(missing(SORCERY_SPELLS.map(s => s.id), SORCERY_SPELL_INFO)).toEqual([])
   })
 })

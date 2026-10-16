@@ -6,6 +6,7 @@ import {
 import { RULES } from '../../engine/rules'
 import type { LearnedSpirit, RuneSpell } from '../../engine/types'
 import { PoolBadge, Section, Stepper, type StepProps } from '../ui'
+import { RuneSpellPop, SpiritSpellPop } from '../pops'
 import { SorcerySection } from './SorcerySection'
 
 const runeCost = (s: RuneSpell) =>
@@ -66,7 +67,7 @@ export function MagicStep({ c, set }: StepProps) {
             return (
               <li key={s.id} className={`pick-row ${k || free.has(s.id) ? 'chosen' : ''}`}>
                 <span className="pick-main">
-                  <strong>{s.name}</strong>{' '}
+                  <strong><SpiritSpellPop id={s.id} /></strong>{' '}
                   <span className="faint small">{s.variable ? 'variable' : `${s.cost} pt${s.cost > 1 ? 's' : ''}`}{mult > 1 && ' (double cost)'}</span>
                   {free.has(s.id) && <span className="pill small good">free {free.get(s.id)}</span>}
                   {!allowed.has(s.id) && <span className="pill small">not {cult.name}</span>}
@@ -95,7 +96,7 @@ export function MagicStep({ c, set }: StepProps) {
             const on = c.runeSpells.includes(s.id)
             return (
               <li key={s.id} className={`pick-row ${on ? 'chosen' : ''}`}>
-                <span className="pick-main"><strong>{s.name}</strong> <span className="faint small">{runeCost(s)}</span></span>
+                <span className="pick-main"><strong><RuneSpellPop id={s.id} /></strong> <span className="faint small">{runeCost(s)}</span></span>
                 <button type="button" className="pick-add" disabled={!on && b.runeSpells.spent >= b.runeSpells.total} onClick={() => toggleRune(s.id)}>
                   {on ? 'Remove' : 'Choose'}
                 </button>
@@ -104,7 +105,7 @@ export function MagicStep({ c, set }: StepProps) {
           })}
         </ul>
         <h4>Common Rune magic (known)</h4>
-        <p className="small">{commonRuneSpells().map(s => `${s.name} (${runeCost(s)})`).join(', ')}</p>
+        <p className="small">{commonRuneSpells().map((s, i) => <span key={s.id}>{i > 0 && ', '}<RuneSpellPop id={s.id} /> ({runeCost(s)})</span>)}</p>
       </Section>
 
       <SorcerySection c={c} set={set} />

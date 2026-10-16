@@ -214,13 +214,27 @@ const CATEGORY_PARTS: Record<'agility' | 'communication' | 'knowledge' | 'magic'
   stealth: [{ ch: 'siz', kind: 'primary', negative: true }, { ch: 'dex', kind: 'primary' }, { ch: 'int', kind: 'primary' }, { ch: 'pow', kind: 'secondary', negative: true }],
 }
 
-export function categoryMod(c: Character, cat: SkillCategory): number {
+/** Each characteristic's contribution to a skill category modifier (book pp.58–59). */
+export function categoryModParts(c: Character, cat: SkillCategory): { ch: CharId; value: number; mod: number }[] {
   const base = cat === 'melee' || cat === 'missile' || cat === 'shield' ? 'manipulation' : cat
-  return CATEGORY_PARTS[base].reduce((sum, p) => {
+  return CATEGORY_PARTS[base].map(p => {
     const v = charValue(c, p.ch)
     const m = p.kind === 'primary' ? primaryMod(v) : secondaryMod(v)
-    return sum + (p.negative ? -m : m)
-  }, 0)
+    return { ch: p.ch, value: v, mod: p.negative ? -m : m }
+  })
+}
+
+export function categoryMod(c: Character, cat: SkillCategory): number {
+  return categoryModParts(c, cat).reduce((sum, p) => sum + p.mod, 0)
+}
+
+/** Hit point modifiers from SIZ and POW (book p.55). */
+export function hpMods(c: Character): { siz: number; pow: number } {
+  const siz = charValue(c, 'siz'), pow = charValue(c, 'pow')
+  return {
+    siz: siz <= 4 ? -2 : siz <= 8 ? -1 : siz <= 12 ? 0 : Math.ceil((siz - 12) / 4),
+    pow: pow <= 4 ? -1 : pow <= 16 ? 0 : Math.ceil((pow - 16) / 4),
+  }
 }
 
 export const BASE_CATEGORIES = ['agility', 'communication', 'knowledge', 'magic', 'manipulation', 'perception', 'stealth'] as const
@@ -347,10 +361,8 @@ export const skillTotal = (c: Character, key: SkillKey) => skillLines(c).find(l 
 // Derived attributes
 
 export function hitPoints(c: Character): number {
-  const siz = charValue(c, 'siz'), pow = charValue(c, 'pow')
-  const sizMod = siz <= 4 ? -2 : siz <= 8 ? -1 : siz <= 12 ? 0 : Math.ceil((siz - 12) / 4)
-  const powMod = pow <= 4 ? -1 : pow <= 16 ? 0 : Math.ceil((pow - 16) / 4)
-  return Math.max(1, charValue(c, 'con') + sizMod + powMod)
+  const m = hpMods(c)
+  return Math.max(1, charValue(c, 'con') + m.siz + m.pow)
 }
 
 /** Location hit points by total HP: 1–6, 7–9, 10–12, then +1 per 3 HP. */

@@ -3,6 +3,7 @@ import { SKILLS } from '../../data'
 import { CATEGORY_NAMES, categoryMod, skillChoices, skillLines } from '../../engine/calc'
 import { RULES } from '../../engine/rules'
 import type { Character, SkillCategory } from '../../engine/types'
+import { SkillPop } from '../pops'
 import { PoolBadge, Section, SkillSelect, type StepProps } from '../ui'
 
 const signed = (n: number) => (n === 0 ? '' : n > 0 ? `+${n}` : `−${-n}`)
@@ -72,7 +73,7 @@ export function SkillsStep({ c, set }: StepProps) {
                   </tr>
                   {rows.map(l => (
                     <tr key={l.key}>
-                      <td>{l.name}</td>
+                      <td><SkillPop c={c} line={l} /></td>
                       <td className="num dim">{l.base}</td>
                       <td className="num dim">{signed(l.catMod)}</td>
                       <td className="num">{signed(l.homeland)}</td>

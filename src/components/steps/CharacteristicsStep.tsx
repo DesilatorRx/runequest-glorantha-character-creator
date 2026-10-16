@@ -5,6 +5,7 @@ import {
 import { CHAR_DICE, RULES, RUNE_CHAR } from '../../engine/rules'
 import type { CharId } from '../../engine/types'
 import { CHARS, LOCATIONS } from '../../engine/types'
+import { CharPop } from '../pops'
 import { PoolBadge, Section, Stepper, type StepProps } from '../ui'
 
 const dice = (ch: CharId) => `${CHAR_DICE[ch].n}D6${CHAR_DICE[ch].bonus ? `+${CHAR_DICE[ch].bonus}` : ''}`
@@ -49,7 +50,7 @@ export function CharacteristicsStep({ c, set }: StepProps) {
                 const rb = runeCharBonus(c, ch)
                 return (
                   <tr key={ch}>
-                    <th scope="row">{CHAR_NAMES[ch]} <span className="faint small">{CHAR_LONG[ch]}</span></th>
+                    <th scope="row"><CharPop c={c} ch={ch} /> <span className="faint small">{CHAR_LONG[ch]}</span></th>
                     <td className="num dim">{assign ? `${r.min}–${r.max}` : dice(ch)}</td>
                     <td className="num">
                       {assign

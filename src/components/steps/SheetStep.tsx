@@ -1,5 +1,5 @@
 import {
-  CATEGORY_NAMES, CHAR_NAMES, LOCATION_NAMES, LOCATION_ROLLS, RUNE_NAMES, armorByLocation, charValue, computeDerived,
+  CATEGORY_NAMES, LOCATION_NAMES, LOCATION_ROLLS, armorByLocation, charValue, computeDerived,
   birthDate, commonRuneSpells, cultOf, gearById, homelandOf, knownSpirit, occupationOf, regionOf, runeSpellById, runeValue, skillLines,
   sorceryLines, spiritSpellById,
 } from '../../engine/calc'
@@ -7,6 +7,7 @@ import type { Character, SkillCategory } from '../../engine/types'
 import { CHARS, ELEMENTAL_RUNES, LOCATIONS, POWER_PAIRS } from '../../engine/types'
 import type { Issue } from '../../engine/validate'
 import { FAN_NOTICE } from '../legal'
+import { CharPop, DerivedPop, PassionPop, RunePop, RuneSpellPop, SkillPop, SorcerySpellPop, SpiritSpellPop } from '../pops'
 
 export function SheetStep({ c, issues }: { c: Character; issues: Issue[] }) {
   const d = computeDerived(c)
@@ -52,22 +53,22 @@ export function SheetStep({ c, issues }: { c: Character; issues: Issue[] }) {
             <h3>Characteristics</h3>
             <table className="compact">
               <tbody>
-                {CHARS.map(ch => <tr key={ch}><th>{CHAR_NAMES[ch]}</th><td className="num">{charValue(c, ch)}</td></tr>)}
+                {CHARS.map(ch => <tr key={ch}><th><CharPop c={c} ch={ch} /></th><td className="num">{charValue(c, ch)}</td></tr>)}
               </tbody>
             </table>
             <h3>Attributes</h3>
             <table className="compact">
               <tbody>
-                <tr><th>Magic points</th><td className="num">{d.magicPoints}</td></tr>
-                <tr><th>Hit points</th><td className="num">{d.hp}</td></tr>
-                <tr><th>Healing rate</th><td className="num">{d.healingRate}</td></tr>
-                <tr><th>Damage bonus</th><td className="num">{d.damageBonus}</td></tr>
-                <tr><th>Spirit combat dmg</th><td className="num">{d.spiritDamage}</td></tr>
-                <tr><th>DEX / SIZ SR</th><td className="num">{d.dexSR} / {d.sizSR}</td></tr>
-                <tr><th>Max ENC</th><td className="num">{d.maxEnc}</td></tr>
-                <tr><th>Move</th><td className="num">{d.move}</td></tr>
-                {d.runePoints > 0 && <tr><th>Rune points</th><td className="num">{d.runePoints}</td></tr>}
-                <tr><th>Reputation</th><td className="num">{d.reputation}%</td></tr>
+                <tr><th><DerivedPop c={c} k="mp" label="Magic points" /></th><td className="num">{d.magicPoints}</td></tr>
+                <tr><th><DerivedPop c={c} k="hp" label="Hit points" /></th><td className="num">{d.hp}</td></tr>
+                <tr><th><DerivedPop c={c} k="healing" label="Healing rate" /></th><td className="num">{d.healingRate}</td></tr>
+                <tr><th><DerivedPop c={c} k="damageBonus" label="Damage bonus" /></th><td className="num">{d.damageBonus}</td></tr>
+                <tr><th><DerivedPop c={c} k="spiritDamage" label="Spirit combat dmg" /></th><td className="num">{d.spiritDamage}</td></tr>
+                <tr><th><DerivedPop c={c} k="dexSR" label="DEX SR">DEX</DerivedPop> / <DerivedPop c={c} k="sizSR" label="SIZ SR">SIZ SR</DerivedPop></th><td className="num">{d.dexSR} / {d.sizSR}</td></tr>
+                <tr><th><DerivedPop c={c} k="maxEnc" label="Max ENC" /></th><td className="num">{d.maxEnc}</td></tr>
+                <tr><th><DerivedPop c={c} k="move" label="Move" /></th><td className="num">{d.move}</td></tr>
+                {d.runePoints > 0 && <tr><th><DerivedPop c={c} k="runePoints" label="Rune points" /></th><td className="num">{d.runePoints}</td></tr>}
+                <tr><th><DerivedPop c={c} k="reputation" label="Reputation" /></th><td className="num">{d.reputation}%</td></tr>
               </tbody>
             </table>
           </section>
@@ -76,15 +77,15 @@ export function SheetStep({ c, issues }: { c: Character; issues: Issue[] }) {
             <h3>Runes</h3>
             <table className="compact">
               <tbody>
-                {ELEMENTAL_RUNES.filter(r => runeValue(c, r) > 0).map(r => <tr key={r}><th>{RUNE_NAMES[r]}</th><td className="num">{runeValue(c, r)}%</td></tr>)}
+                {ELEMENTAL_RUNES.filter(r => runeValue(c, r) > 0).map(r => <tr key={r}><th><RunePop c={c} r={r} /></th><td className="num">{runeValue(c, r)}%</td></tr>)}
                 {POWER_PAIRS.map(([a, z]) => (
-                  <tr key={a}><th>{RUNE_NAMES[a]} / {RUNE_NAMES[z]}</th><td className="num">{runeValue(c, a)} / {runeValue(c, z)}</td></tr>
+                  <tr key={a}><th><RunePop c={c} r={a} /> / <RunePop c={c} r={z} /></th><td className="num">{runeValue(c, a)} / {runeValue(c, z)}</td></tr>
                 ))}
               </tbody>
             </table>
             <h3>Passions</h3>
             <ul className="plain small">
-              {c.passions.map(p => <li key={p.uid} className="row"><span>{p.kind}{p.target && ` (${p.target})`}</span><span className="spacer" /><span className="mono">{p.value}%</span></li>)}
+              {c.passions.map(p => <li key={p.uid} className="row"><span><PassionPop p={p} /></span><span className="spacer" /><span className="mono">{p.value}%</span></li>)}
             </ul>
           </section>
 
@@ -100,11 +101,11 @@ export function SheetStep({ c, issues }: { c: Character; issues: Issue[] }) {
             </table>
             <h3>Magic</h3>
             <p className="small">
-              <strong>Spirit:</strong> {knownSpirit(c).map(s => `${spiritSpellById(s.id)?.name ?? s.id} (${s.points})`).join(', ') || '—'}
+              <strong>Spirit:</strong> {knownSpirit(c).length ? knownSpirit(c).map((s, i) => <span key={s.id}>{i > 0 && ', '}<SpiritSpellPop id={s.id} points={s.points}>{spiritSpellById(s.id)?.name ?? s.id} ({s.points})</SpiritSpellPop></span>) : '—'}
               <br />
-              <strong>Rune{cult ? ` (${cult.name})` : ''}:</strong> {c.runeSpells.map(id => runeSpellById(id)?.name ?? id).join(', ') || '—'}
-              {cult && <><br /><strong>Common Rune magic:</strong> {commonRuneSpells().map(s => s.name).join(', ')}</>}
-              {sorc.length > 0 && <><br /><strong>Sorcery:</strong> {sorc.map(l => `${l.name} ${l.total}%`).join(', ')}</>}
+              <strong>Rune{cult ? ` (${cult.name})` : ''}:</strong> {c.runeSpells.length ? c.runeSpells.map((id, i) => <span key={id}>{i > 0 && ', '}<RuneSpellPop id={id}>{runeSpellById(id)?.name ?? id}</RuneSpellPop></span>) : '—'}
+              {cult && <><br /><strong>Common Rune magic:</strong> {commonRuneSpells().map((s, i) => <span key={s.id}>{i > 0 && ', '}<RuneSpellPop id={s.id} /></span>)}</>}
+              {sorc.length > 0 && <><br /><strong>Sorcery:</strong> {sorc.map((l, i) => <span key={l.id}>{i > 0 && ', '}<SorcerySpellPop id={l.id}>{l.name}</SorcerySpellPop> {l.total}%</span>)}</>}
             </p>
           </section>
         </div>
@@ -143,7 +144,7 @@ export function SheetStep({ c, issues }: { c: Character; issues: Issue[] }) {
                 <div key={cat} className="skill-block">
                   <h4>{CATEGORY_NAMES[cat]}</h4>
                   <ul className="plain small">
-                    {rows.map(l => <li key={l.key} className="row nowrap"><span>{l.name}</span><span className="spacer" /><span className="mono">{l.total}%</span></li>)}
+                    {rows.map(l => <li key={l.key} className="row nowrap"><span><SkillPop c={c} line={l} /></span><span className="spacer" /><span className="mono">{l.total}%</span></li>)}
                   </ul>
                 </div>
               )

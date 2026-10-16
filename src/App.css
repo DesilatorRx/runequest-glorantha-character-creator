@@ -224,3 +224,27 @@ ul.plain li + li { margin-top: 0.2rem; }
 .gear-search { margin-top: 0.75rem; width: 100%; max-width: 22rem; }
 .pick-row-wrap { list-style: none; }
 .gear-group-head { margin: 0.9rem 0 0.35rem; font-size: 0.8rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* ---------- Breakdown popovers ---------- */
+.pop-trigger {
+  all: unset; cursor: pointer; border-bottom: 1px dotted var(--line-strong); color: inherit; font: inherit;
+  text-transform: inherit; letter-spacing: inherit;
+}
+.pop-trigger:hover, .pop-trigger[aria-expanded='true'] { color: var(--accent); border-bottom-color: var(--accent); }
+.pop-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+.pop-card {
+  position: fixed; z-index: 50; width: min(340px, calc(100vw - 32px));
+  background: var(--bg-raised); border: 1px solid var(--accent-dim); border-radius: var(--radius);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55); padding: 0.8rem 0.9rem; font-size: 0.9rem; text-align: left;
+  white-space: normal; text-transform: none; letter-spacing: normal; font-family: var(--font-body); color: var(--text);
+}
+.pop-title { font-family: var(--font-head); font-weight: 600; color: var(--accent); margin-bottom: 0.35rem; }
+.pop-summary { margin: 0 0 0.55rem; line-height: 1.45; }
+.pop-table { width: 100%; border-collapse: collapse; }
+.pop-table td { padding: 0.18rem 0; border: 0; border-bottom: 1px solid var(--line); font-size: 0.88rem; vertical-align: top; }
+.pop-table td:last-child { text-align: right; padding-left: 0.75rem; white-space: nowrap; }
+.pop-total td { font-weight: 600; color: var(--accent); border-bottom: 0; padding-top: 0.3rem; }
+.pop-note { margin: 0.5rem 0 0; color: var(--text-dim); font-size: 0.82rem; }
+.pop-page { margin: 0.4rem 0 0; color: var(--text-faint); font-size: 0.78rem; }
+.pop-facts { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0 0 0.5rem; }
+@media print { .pop-trigger { border-bottom: 0; } }
