@@ -95,11 +95,28 @@ export interface TableOptions {
   charMethod: 'roll' | 'assign'
   /** Total characteristic points for the assign method. */
   assignPoints: number
+  /** House rules for a stronger start (0 = rules as written). */
+  extraPersonal25: number
+  extraPersonal10: number
+  extraRunePoints: number
+  extraSpiritMagic: number
+  /** Highest a skill may start at (book: 100). */
+  skillCap: number
 }
 
 export const RQG_OPTIONS: TableOptions = {
   charMethod: 'roll',
   assignPoints: 92,
+  extraPersonal25: 0,
+  extraPersonal10: 0,
+  extraRunePoints: 0,
+  extraSpiritMagic: 0,
+  skillCap: 100,
+}
+
+/** A house-rule preset for a more experienced start: two more +25% bonuses, two more +10%, +2 Rune points, +2 spirit magic. */
+export const EXPERIENCED_OPTIONS: Partial<TableOptions> = {
+  extraPersonal25: 2, extraPersonal10: 2, extraRunePoints: 2, extraSpiritMagic: 2, skillCap: 100,
 }
 
 export type Rules = typeof RULES

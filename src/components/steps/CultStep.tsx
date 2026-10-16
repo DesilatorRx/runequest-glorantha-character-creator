@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { CULTS } from '../../data'
-import { RUNE_NAMES, charValue, computeDerived, cultById, cultOf, cultStartingKeys, homelandOf, occupationOf, resolveKey, runeSpellById, skillChoices, skillName, spiritSpellById, undoFavored } from '../../engine/calc'
+import { allCults } from '../../data/registry'
+import { RUNE_NAMES, charValue, startingLimits, computeDerived, cultById, cultOf, cultStartingKeys, homelandOf, occupationOf, resolveKey, runeSpellById, skillChoices, skillName, spiritSpellById, undoFavored } from '../../engine/calc'
 import { RULES } from '../../engine/rules'
 import { FavoredPicker } from '../FavoredPicker'
 import { ChoiceGrid, Section, SkillSelect, Stepper, type StepProps } from '../ui'
@@ -11,7 +11,7 @@ export function CultStep({ c, set }: StepProps) {
   const [all, setAll] = useState(false)
   const cult = cultOf(c)
   const common = new Set([...(home?.cults ?? []), ...(occ?.cults ?? [])])
-  const list = (home || occ) && !all ? CULTS.filter(x => common.has(x.id) || x.id === c.cult) : CULTS
+  const list = (home || occ) && !all ? allCults().filter(x => common.has(x.id) || x.id === c.cult || x.source === 'homebrew') : allCults()
 
   const pick = (id: string) => set(ch => (ch.cult === id ? ch : { ...undoFavored(ch, 'cult'), cult: id, cultStartPicks: {}, cultPicks: [], powSacrifice: 0, runeSpells: [], spiritMagic: [] }))
 
@@ -27,7 +27,7 @@ export function CultStep({ c, set }: StepProps) {
         )}
       >
         <ChoiceGrid
-          items={list.map(x => ({ id: x.id, name: x.name, blurb: <>{x.runes.map(r => RUNE_NAMES[r]).join(' · ')}{x.hint && <><br />{x.hint}</>}</> }))}
+          items={list.map(x => ({ id: x.id, name: x.name, blurb: <>{x.source === 'homebrew' && <><span className="pill homebrew-pill">homebrew</span><br /></>}{x.runes.map(r => RUNE_NAMES[r]).join(' · ')}{x.hint && <><br />{x.hint}</>}</> }))}
           value={c.cult}
           onPick={pick}
         />
@@ -82,10 +82,10 @@ export function CultStep({ c, set }: StepProps) {
               <Stepper label="POW sacrificed" value={c.powSacrifice} max={Math.max(0, charValue(c, 'pow') + c.powSacrifice - 1)} onChange={v => set(ch => ({ ...ch, powSacrifice: v }))} />
             </label>
             <p className="small dim">
-              You start with {RULES.startingRunePoints} Rune points in {cult.name}. Each point of POW you sacrifice adds one Rune point and one more special
+              You start with {startingLimits(c).runePoints} Rune points in {cult.name}. Each point of POW you sacrifice adds one Rune point and one more special
               Rune spell. Your POW is now {charValue(c, 'pow')} and you have {computeDerived(c).runePoints} Rune points.
             </p>
-            {cult.source !== 'wiki' && cult.source !== 'book' && (
+            {cult.source !== 'wiki' && cult.source !== 'book' && cult.source !== 'homebrew' && (
               <p className="small warn">
                 {cult.source === 'community'
                   ? "This cult's skills, spells, and passions come from a fan transcription and haven't been checked against the book yet."

@@ -3,7 +3,7 @@
 import {
   CATEGORY_NAMES, CHAR_NAMES, RUNE_NAMES, categoryModParts, charUncapped, charValue, computeDerived,
   dexSR, encCarried, encOver, extraDecades, loadedSkill, healingRate, homelandOf, hpMods, maxEnc, occupationOf, opposite, rankedElementals, regionOf,
-  runeCharTargets, runeValue, sizSR, type SkillLine,
+  runeCharTargets, runeValue, sizSR, startingLimits, type SkillLine,
 } from './calc'
 import { RULES } from './rules'
 import type { Character, CharId, PowerRune, RuneId } from './types'
@@ -73,7 +73,7 @@ export function skillBreakdown(c: Character, l: SkillLine): Breakdown {
   if (l.history) rows.push(row('Family history / experience', l.history))
   if (l.personal) rows.push(row('Personal bonus', l.personal))
   const raw = l.base + l.catMod + l.homeland + l.occupation + l.cult + l.history + l.personal
-  if (l.capped) rows.push({ label: `Over the ${RULES.maxStartingSkill}% starting cap`, value: signed(l.total - raw), dim: true })
+  if (l.capped) rows.push({ label: `Over the ${startingLimits(c).skillCap}% starting cap`, value: signed(l.total - raw), dim: true })
   rows.push(total(l.name, `${l.total}%`))
   const loaded = loadedSkill(c, l)
   if (loaded !== l.total) rows.push({ label: `With what you carry (ENC ${encCarried(c)} of ${maxEnc(c)})`, value: `${loaded}%`, dim: true })
@@ -112,6 +112,7 @@ export function derivedBreakdown(c: Character, key: DerivedKey): Breakdown {
     }
     case 'runePoints': {
       const rows: Row[] = [{ label: 'Initiate', value: String(c.cult ? RULES.startingRunePoints : 0) }]
+      if (c.cult && c.options.extraRunePoints) rows.push(row('Table rule', c.options.extraRunePoints))
       if (c.powSacrifice) rows.push(row('POW sacrificed', c.powSacrifice))
       if (extraDecades(c)) rows.push(row(`Older adventurer (${extraDecades(c)} decade${extraDecades(c) > 1 ? 's' : ''})`, RULES.olderRunePoints * extraDecades(c)))
       rows.push(total('Rune points', d.runePoints))

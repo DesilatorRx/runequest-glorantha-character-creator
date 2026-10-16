@@ -1,9 +1,8 @@
 import { useState } from 'react'
 import { RUNE_SPELLS, SPIRIT_SPELLS } from '../../data'
 import {
-  availableSpiritSpells, charValue, commonRuneSpells, computeBudget, computeDerived, cultById, cultOf, knownSpirit, occupationOf, spiritSpellById,
+  availableSpiritSpells, charValue, startingLimits, commonRuneSpells, computeBudget, computeDerived, cultById, cultOf, knownSpirit, occupationOf, spiritSpellById,
 } from '../../engine/calc'
-import { RULES } from '../../engine/rules'
 import type { LearnedSpirit, RuneSpell } from '../../engine/types'
 import { PoolBadge, Section, Stepper, type StepProps } from '../ui'
 import { RuneSpellPop, SpiritSpellPop } from '../pops'
@@ -88,7 +87,7 @@ export function MagicStep({ c, set }: StepProps) {
       <Section title="Rune magic" aside={<PoolBadge label="Special spells" total={b.runeSpells.total} spent={b.runeSpells.spent} />}>
         <p className="small dim">
           You have {computeDerived(c).runePoints} Rune points in {cult.name}. You know all common Rune magic, and choose {b.runeSpells.total} special Rune
-          spells from the cult's list ({RULES.startingRuneSpells}, plus one for each point of POW sacrificed on the Cult step).
+          spells from the cult's list ({startingLimits(c).runeSpells}, plus one for each point of POW sacrificed on the Cult step).
         </p>
         <h4>Special Rune magic</h4>
         <ul className="pick-list">

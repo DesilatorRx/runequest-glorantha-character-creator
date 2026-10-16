@@ -1,5 +1,5 @@
 import {
-  CHAR_NAMES, RUNE_NAMES, availableSpiritSpells, encOver, maxEnc, isPhilosopher, knownSpirit, sorceryCultOf, sorceryLines, sorceryMasteries, charBase, charUncapped, cultGrants, cultStartingKeys, occupationGrants, regionOf, charRange, charValue, computeBudget, cultOf, homelandOf, occupationOf, opposite,
+  CHAR_NAMES, RUNE_NAMES, availableSpiritSpells, startingLimits, encOver, maxEnc, isPhilosopher, knownSpirit, sorceryCultOf, sorceryLines, sorceryMasteries, charBase, charUncapped, cultGrants, cultStartingKeys, occupationGrants, regionOf, charRange, charValue, computeBudget, cultOf, homelandOf, occupationOf, opposite,
   remaining, rolledTotal, runeValue, runeSpellById, skillChoices, skillLines, skillName, spiritSpellById, topUpAllowed,
 } from './calc'
 import { SORCERY_RULES, maxMasteries } from '../data/sorcery'
@@ -124,14 +124,16 @@ export function validate(c: Character): Issue[] {
 
   // Skills
   const p25 = c.personal25.filter(Boolean), p10 = c.personal10.filter(Boolean)
-  if (p25.length < RULES.personalBig.count) warn('skills', `${RULES.personalBig.count - p25.length} personal +${RULES.personalBig.bonus}% bonus${RULES.personalBig.count - p25.length > 1 ? 'es' : ''} not assigned.`)
-  if (p10.length < RULES.personalSmall.count) warn('skills', `${RULES.personalSmall.count - p10.length} personal +${RULES.personalSmall.bonus}% bonus${RULES.personalSmall.count - p10.length > 1 ? 'es' : ''} not assigned.`)
+  const lim = startingLimits(c)
+  if (p25.length < lim.personal25) warn('skills', `${lim.personal25 - p25.length} personal +${RULES.personalBig.bonus}% bonus${lim.personal25 - p25.length > 1 ? 'es' : ''} not assigned.`)
+  if (p10.length < lim.personal10) warn('skills', `${lim.personal10 - p10.length} personal +${RULES.personalSmall.bonus}% bonus${lim.personal10 - p10.length > 1 ? 'es' : ''} not assigned.`)
+  if (p25.length > lim.personal25 || p10.length > lim.personal10) err('skills', 'More personal bonuses assigned than your table allows.')
   if (new Set(p25).size !== p25.length) err('skills', `Each +${RULES.personalBig.bonus}% bonus must go to a different skill.`)
   if (new Set(p10).size !== p10.length) err('skills', `Each +${RULES.personalSmall.bonus}% bonus must go to a different skill.`)
   for (const l of skillLines(c)) {
-    if (l.capped) warn('skills', `${l.name} is capped at ${RULES.maxStartingSkill}%; bonuses above that are lost.`)
-    if (l.personal > 0 && l.total - l.personal >= RULES.maxStartingSkill)
-      err('skills', `${l.name} is already ${RULES.maxStartingSkill}% before personal bonuses; put them on another skill.`)
+    if (l.capped) warn('skills', `${l.name} is capped at ${lim.skillCap}%; bonuses above that are lost.`)
+    if (l.personal > 0 && l.total - l.personal >= lim.skillCap)
+      err('skills', `${l.name} is already ${lim.skillCap}% before personal bonuses; put them on another skill.`)
   }
   const older = b.olderPicks
   if (older.total > 0) {

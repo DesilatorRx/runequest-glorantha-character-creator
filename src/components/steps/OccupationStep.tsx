@@ -1,4 +1,4 @@
-import { OCCUPATIONS } from '../../data'
+import { allOccupations } from '../../data/registry'
 import { cultById, homelandOf, occupationOf, skillChoices, skillName, undoFavored, withKit } from '../../engine/calc'
 import { uid } from '../../state/store'
 import { FavoredPicker } from '../FavoredPicker'
@@ -10,7 +10,7 @@ export function OccupationStep({ c, set }: StepProps) {
   const home = homelandOf(c)
   const occ = occupationOf(c)
   const suggested = (id: string) => !!home?.occupations.includes(id)
-  const list = [...OCCUPATIONS].sort((a, b) => Number(suggested(b.id)) - Number(suggested(a.id)))
+  const list = [...allOccupations()].sort((a, b) => Number(suggested(b.id)) - Number(suggested(a.id)))
 
   return (
     <div className="stack">
@@ -18,7 +18,7 @@ export function OccupationStep({ c, set }: StepProps) {
         title="What did you do before adventuring?"
       >
         <ChoiceGrid
-          items={list.map(o => ({ id: o.id, name: o.name, blurb: <>{suggested(o.id) && <><span className="pill accent">suggested for {home!.name}</span><br /></>}{o.hint}{o.source !== 'wiki' && o.source !== 'book' && <><br /><span className="pill warn-pill">{o.source === 'community' ? 'fan transcription' : 'numbers unverified'}</span></>}</> }))}
+          items={list.map(o => ({ id: o.id, name: o.name, blurb: <>{suggested(o.id) && <><span className="pill accent">suggested for {home!.name}</span><br /></>}{o.hint}{o.source === 'homebrew' && <><br /><span className="pill homebrew-pill">homebrew</span></>}</> }))}
           value={c.occupation}
           onPick={id => set(ch => (ch.occupation === id ? ch : { ...withKit(undoFavored(ch, 'occupation'), id, uid), occupation: id, occupationPicks: {} }))}
         />
@@ -26,7 +26,7 @@ export function OccupationStep({ c, set }: StepProps) {
 
       {occ && (
         <Section title={occ.name}>
-          {occ.source !== 'wiki' && occ.source !== 'book' && (
+          {occ.source !== 'wiki' && occ.source !== 'book' && occ.source !== 'homebrew' && (
             <p className="small warn">
               {occ.source === 'community'
                 ? "These numbers come from a fan transcription of the rulebook and haven't been checked against the book yet."

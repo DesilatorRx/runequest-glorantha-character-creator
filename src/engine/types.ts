@@ -93,7 +93,7 @@ export interface HomelandRegion {
 
 /** Where a data entry's numbers come from, so unverified entries can be flagged in the UI. */
 /** 'book': checked against the core rulebook. 'wiki': Chaosium's RuneQuest wiki or Q&A. 'community': a fan transcription. 'unverified': from memory. */
-export type DataSource = 'book' | 'wiki' | 'community' | 'unverified'
+export type DataSource = 'book' | 'wiki' | 'community' | 'unverified' | 'homebrew'
 
 export type StandardOfLiving = 'destitute' | 'poor' | 'free' | 'noble' | 'petty_king'
 

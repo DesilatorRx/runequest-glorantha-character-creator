@@ -1,4 +1,4 @@
-import { HOMELANDS } from '../../data'
+import { allHomelands } from '../../data/registry'
 import { CHAR_NAMES, RUNE_NAMES, applyRegionPassions, cultById, homelandOf, occupationById, regionOf, skillChoices, skillName } from '../../engine/calc'
 import { RULES } from '../../engine/rules'
 import type { CharId } from '../../engine/types'
@@ -19,7 +19,7 @@ export function HomelandStep({ c, set }: StepProps) {
     <div className="stack">
       <Section title="Where were you raised?">
         <ChoiceGrid
-          items={HOMELANDS.map(x => ({ id: x.id, name: x.name, blurb: <>{x.hint}{x.source && x.source !== 'wiki' && x.source !== 'book' && <><br /><span className="pill warn-pill">fan transcription</span></>}</> }))}
+          items={allHomelands().map(x => ({ id: x.id, name: x.name, blurb: <>{x.hint}{x.source === 'homebrew' && <><br /><span className="pill homebrew-pill">homebrew</span></>}</> }))}
           value={c.homeland}
           onPick={pick}
         />

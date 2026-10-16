@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { SKILLS } from '../../data'
-import { CATEGORY_NAMES, categoryMod, skillChoices, skillLines } from '../../engine/calc'
+import { CATEGORY_NAMES, categoryMod, startingLimits, skillChoices, skillLines } from '../../engine/calc'
 import { RULES } from '../../engine/rules'
 import type { Character, SkillCategory } from '../../engine/types'
 import { SkillPop } from '../pops'
@@ -36,11 +36,11 @@ export function SkillsStep({ c, set }: StepProps) {
   return (
     <div className="stack">
       <div className="two-col">
-        <Section title={`Personal +${RULES.personalBig.bonus}%`} aside={<PoolBadge label="Left" total={RULES.personalBig.count} spent={c.personal25.filter(Boolean).length} />}>
-          {picker('personal25', RULES.personalBig.count, RULES.personalBig.bonus)}
+        <Section title={`Personal +${RULES.personalBig.bonus}%`} aside={<PoolBadge label="Left" total={startingLimits(c).personal25} spent={c.personal25.filter(Boolean).length} />}>
+          {picker('personal25', startingLimits(c).personal25, RULES.personalBig.bonus)}
         </Section>
-        <Section title={`Personal +${RULES.personalSmall.bonus}%`} aside={<PoolBadge label="Left" total={RULES.personalSmall.count} spent={c.personal10.filter(Boolean).length} />}>
-          {picker('personal10', RULES.personalSmall.count, RULES.personalSmall.bonus)}
+        <Section title={`Personal +${RULES.personalSmall.bonus}%`} aside={<PoolBadge label="Left" total={startingLimits(c).personal10} spent={c.personal10.filter(Boolean).length} />}>
+          {picker('personal10', startingLimits(c).personal10, RULES.personalSmall.bonus)}
         </Section>
       </div>
 

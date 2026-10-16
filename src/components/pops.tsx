@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
-import { CULTS, RUNE_SPELLS, SPIRIT_SPELLS } from '../data'
+import { RUNE_SPELLS, SPIRIT_SPELLS } from '../data'
+import { allCults } from '../data/registry'
 import { CHAR_INFO, DERIVED_INFO, PASSION_INFO, RUNE_INFO, SKILL_INFO } from '../data/abilityInfo'
 import { SORCERY_RUNES, SORCERY_SPELLS, SORCERY_TECHNIQUES } from '../data/sorcery'
 import { SORCERY_SPELL_INFO } from '../data/spellInfoSorcery'
@@ -67,7 +68,7 @@ export function PassionPop({ p, children }: { p: Passion; children?: ReactNode }
 }
 
 const teachers = (kind: 'spirit' | 'rune', id: string) =>
-  CULTS.filter(cu => (kind === 'spirit' ? cu.spiritSpells : cu.runeSpells).includes(id)).map(cu => cu.name)
+  allCults().filter(cu => (kind === 'spirit' ? cu.spiritSpells : cu.runeSpells).includes(id)).map(cu => cu.name)
 
 export function SpiritSpellPop({ id, points, children }: { id: string; points?: number; children?: ReactNode }) {
   const s = SPIRIT_SPELLS.find(x => x.id === id)

@@ -8,6 +8,7 @@ import {
 } from './calc'
 import type { Character, RuneId } from './types'
 import { CHARS, ELEMENTAL_RUNES, LOCATIONS, POWER_PAIRS } from './types'
+import { homebrewUsedBy } from '../state/homebrew'
 import { validate } from './validate'
 
 export const SHEET_FORMAT = 'rqg-character-creator/sheet'
@@ -103,5 +104,6 @@ export function buildSheet(c: Character) {
 
 /** What the Export button saves: the adventurer plus its computed sheet. */
 export function exportCharacter(c: Character) {
-  return { ...c, sheet: buildSheet(c) }
+  const homebrew = homebrewUsedBy(c)
+  return { ...c, ...(homebrew ? { homebrew } : {}), sheet: buildSheet(c) }
 }

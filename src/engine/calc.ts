@@ -1,4 +1,5 @@
-import { CULTS, GEAR, HOMELANDS, OCCUPATIONS, RUNE_SPELLS, SKILLS, SPIRIT_SPELLS } from '../data'
+import { GEAR, RUNE_SPELLS, SKILLS, SPIRIT_SPELLS } from '../data'
+import { findCult, findHomeland, findOccupation } from '../data/registry'
 import { OCCUPATION_KITS } from '../data/occupationGear'
 import { SORCERY_CULTS, SORCERY_RULES, SORCERY_SPELLS } from '../data/sorcery'
 import { CHAR_DICE, RULES, RUNE_CHAR } from './rules'
@@ -37,23 +38,20 @@ export const LOCATION_ROLLS: Record<Location, string> = {
 
 const byId = <T extends { id: string }>(list: T[]) => new Map(list.map(x => [x.id, x]))
 const SKILL_MAP = byId(SKILLS)
-const HOMELAND_MAP = byId(HOMELANDS)
-const OCCUPATION_MAP = byId(OCCUPATIONS)
-const CULT_MAP = byId(CULTS)
 const SPIRIT_MAP = byId(SPIRIT_SPELLS)
 const RUNE_SPELL_MAP = byId(RUNE_SPELLS)
 const GEAR_MAP = byId(GEAR)
 
 export const skillById = (id: string): Skill | undefined => SKILL_MAP.get(id)
-export const homelandOf = (c: Character): Homeland | undefined => HOMELAND_MAP.get(c.homeland)
-export const occupationOf = (c: Character): Occupation | undefined => OCCUPATION_MAP.get(c.occupation)
-export const cultOf = (c: Character): Cult | undefined => CULT_MAP.get(c.cult)
+export const homelandOf = (c: Character): Homeland | undefined => findHomeland(c.homeland)
+export const occupationOf = (c: Character): Occupation | undefined => findOccupation(c.occupation)
+export const cultOf = (c: Character): Cult | undefined => findCult(c.cult)
 export const spiritSpellById = (id: string) => SPIRIT_MAP.get(id)
 export const runeSpellById = (id: string) => RUNE_SPELL_MAP.get(id)
 export const gearById = (id: string): GearItem | undefined => GEAR_MAP.get(id)
-export const homelandById = (id: string) => HOMELAND_MAP.get(id)
-export const occupationById = (id: string) => OCCUPATION_MAP.get(id)
-export const cultById = (id: string) => CULT_MAP.get(id)
+export const homelandById = (id: string) => findHomeland(id)
+export const occupationById = (id: string) => findOccupation(id)
+export const cultById = (id: string) => findCult(id)
 
 export const WEAPON_CATEGORIES: SkillCategory[] = ['melee', 'missile', 'shield']
 export const isWeaponSkill = (s: Skill) => WEAPON_CATEGORIES.includes(s.category)
@@ -315,6 +313,19 @@ export function historyGrants(c: Character) {
     ...c.olderPicks.filter(Boolean).map(k => ({ key: k, bonus: RULES.olderSkillBonus })),
   ]
 }
+/** Starting limits: the book's values plus any house-rule extras chosen on the Concept step. */
+export function startingLimits(c: Character) {
+  const o = c.options
+  return {
+    personal25: RULES.personalBig.count + (o.extraPersonal25 ?? 0),
+    personal10: RULES.personalSmall.count + (o.extraPersonal10 ?? 0),
+    skillCap: o.skillCap || RULES.maxStartingSkill,
+    runePoints: RULES.startingRunePoints + (o.extraRunePoints ?? 0),
+    runeSpells: RULES.startingRuneSpells + (o.extraRunePoints ?? 0),
+    spiritMagic: RULES.cultSpiritMagic + (o.extraSpiritMagic ?? 0),
+  }
+}
+
 export function personalGrants(c: Character) {
   return [
     ...c.personal25.filter(Boolean).map(k => ({ key: k, bonus: RULES.personalBig.bonus })),
@@ -353,7 +364,8 @@ export function skillLines(c: Character): SkillLine[] {
     const catMod = base > 0 || anyBonus ? categoryMod(c, skill.category) : 0
     const line = { key, skill, name: skillName(c, key), base, catMod, ...bonuses }
     const raw = line.base + line.catMod + line.homeland + line.occupation + line.cult + line.history + line.personal
-    lines.push({ ...line, total: Math.max(0, Math.min(RULES.maxStartingSkill, raw)), capped: raw > RULES.maxStartingSkill })
+    const cap = startingLimits(c).skillCap
+    lines.push({ ...line, total: Math.max(0, Math.min(cap, raw)), capped: raw > cap })
   }
   const order = (s: Skill) => Object.keys(CATEGORY_NAMES).indexOf(s.category)
   return lines.sort((a, b) => order(a.skill) - order(b.skill) || a.name.localeCompare(b.name))
@@ -431,7 +443,7 @@ export function computeDerived(c: Character) {
     sizSR: sizSR(c),
     maxEnc: maxEnc(c),
     move: Math.max(0, 8 - encOver(c)),
-    runePoints: c.cult ? RULES.startingRunePoints + c.powSacrifice + RULES.olderRunePoints * extraDecades(c) : 0,
+    runePoints: c.cult ? startingLimits(c).runePoints + c.powSacrifice + RULES.olderRunePoints * extraDecades(c) : 0,
     reputation: RULES.startingReputation + (occupationOf(c)?.reputation ?? 0) + c.reputation,
   }
 }
@@ -504,13 +516,13 @@ export function computeBudget(c: Character) {
     occupationPicks: { total: choiceGrants.length, spent: choiceGrants.filter(i => c.occupationPicks[i]).length },
     cultPicks: { total: c.cult ? RULES.cultSkillBonuses.length : 0, spent: c.cultPicks.filter(Boolean).length },
     olderPicks: { total: RULES.olderSkillPicks * extraDecades(c), spent: c.olderPicks.filter(Boolean).length },
-    personal25: { total: RULES.personalBig.count, spent: c.personal25.filter(Boolean).length },
-    personal10: { total: RULES.personalSmall.count, spent: c.personal10.filter(Boolean).length },
+    personal25: { total: startingLimits(c).personal25, spent: c.personal25.filter(Boolean).length },
+    personal10: { total: startingLimits(c).personal10, spent: c.personal10.filter(Boolean).length },
     spiritMagic: {
-      total: c.cult ? (c.sorcery.cultSpells.length ? 0 : RULES.cultSpiritMagic) + (occ?.spiritMagic ?? 0) + RULES.olderSpiritMagic * extraDecades(c) : 0,
+      total: c.cult ? (c.sorcery.cultSpells.length ? 0 : startingLimits(c).spiritMagic) + (occ?.spiritMagic ?? 0) + RULES.olderSpiritMagic * extraDecades(c) : 0,
       spent: spiritMagicPoints(c),
     },
-    runeSpells: { total: c.cult ? RULES.startingRuneSpells + c.powSacrifice : 0, spent: c.runeSpells.length },
+    runeSpells: { total: c.cult ? startingLimits(c).runeSpells + c.powSacrifice : 0, spent: c.runeSpells.length },
     silver: { total: wealth, spent: Math.round(spent * 10) / 10 },
   }
 }
@@ -649,7 +661,7 @@ export function sorceryLines(c: Character): SorceryLine[] {
     const unTech = spell.techniques.filter(t => !m.techniques.includes(t)).length
     const costMultiplier = unRunes && unTech ? 4 : unRunes || unTech ? SORCERY_RULES.unmasteredCostMultiplier : 1
     const raw = Math.max(0, SORCERY_RULES.spellBaseChance + mod + bonus)
-    return [{ id, name: spell.name, bonus, total: Math.min(raw, readWrite, RULES.maxStartingSkill), costMultiplier }]
+    return [{ id, name: spell.name, bonus, total: Math.min(raw, readWrite, startingLimits(c).skillCap), costMultiplier }]
   })
 }
 

@@ -33,6 +33,17 @@ It needs no install and no account. Adventurers are saved in your browser, and y
 - **Equipment:** weapons, armor (per hit location) and over 160 general items, bought with your occupation's starting wealth.
 - **Print or save as PDF** from a clean adventurer sheet. Works on desktop and phone.
 
+## Homebrew and stronger starts
+
+- **Homebrew:** the **Homebrew** page (from the adventurer list) lets you create homelands, occupations, and cults with
+  forms, or start from a copy of a book entry. They appear in the creation steps marked *homebrew*. **Export pack**
+  saves a file to share with your players; **Import pack** merges one in. An exported adventurer carries the homebrew it
+  uses, so it opens correctly on another computer.
+- **Starting power** (Concept step): by the book, older adventurers start more experienced (+5% to four occupation or
+  cult skills, +3 Rune points, and +1 spirit magic per 10 years over 21; aging past 40). For a stronger start by house
+  rule, add extra personal skill bonuses, Rune points, or spirit magic, or raise the starting skill cap, or use the
+  *Experienced* preset.
+
 ## JSON export format
 
 **Export JSON** saves two things:

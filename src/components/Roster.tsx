@@ -5,13 +5,15 @@ import { validate } from '../engine/validate'
 import { track } from '../analytics'
 import { FAN_NOTICE } from './legal'
 
-export function Roster({ chars, onOpen, onCreate, onImport, onDelete, onDuplicate }: {
+export function Roster({ chars, onOpen, onCreate, onImport, onDelete, onDuplicate, onHomebrew, homebrewCount }: {
   chars: Character[]
   onOpen: (id: string) => void
   onCreate: () => void
   onImport: (c: Character) => void
   onDelete: (id: string) => void
   onDuplicate: (c: Character) => void
+  onHomebrew: () => void
+  homebrewCount: number
 }) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState('')
@@ -43,6 +45,7 @@ export function Roster({ chars, onOpen, onCreate, onImport, onDelete, onDuplicat
         <div className="row">
           <button type="button" className="primary" onClick={onCreate}>New adventurer</button>
           <span className="spacer" />
+          <button type="button" onClick={onHomebrew}>Homebrew{homebrewCount ? ` (${homebrewCount})` : ''}</button>
           <button type="button" onClick={() => fileRef.current?.click()}>Import JSON…</button>
           <input
             ref={fileRef}

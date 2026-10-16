@@ -252,3 +252,6 @@ ul.plain li + li { margin-top: 0.2rem; }
 .kit-other li::before { content: '• '; color: var(--accent); }
 .carry-toggle { padding: 0.1em 0.6em; }
 .carry-toggle.stowed { color: var(--text-faint); border-style: dashed; }
+.homebrew-pill { border-color: var(--magic); color: var(--magic); }
+.grant-row { padding: 0.35rem 0; border-bottom: 1px solid var(--line); }
+.grants-editor select { max-width: 16rem; }
