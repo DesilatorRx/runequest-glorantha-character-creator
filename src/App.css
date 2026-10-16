@@ -255,3 +255,4 @@ ul.plain li + li { margin-top: 0.2rem; }
 .homebrew-pill { border-color: var(--magic); color: var(--magic); }
 .grant-row { padding: 0.35rem 0; border-bottom: 1px solid var(--line); }
 .grants-editor select { max-width: 16rem; }
+button.preset.selected { border-color: var(--accent); background: rgba(224, 168, 78, 0.14); color: var(--accent); font-weight: 600; }

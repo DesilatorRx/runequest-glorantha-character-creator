@@ -1,8 +1,13 @@
 import { EXPERIENCED_OPTIONS, RQG_OPTIONS, type TableOptions } from '../../engine/rules'
+
+const BOOK_POWER: Partial<TableOptions> = { extraPersonal25: 0, extraPersonal10: 0, extraRunePoints: 0, extraSpiritMagic: 0, skillCap: 100 }
 import { Section, type StepProps } from '../ui'
 
 export function ConceptStep({ c, set }: StepProps) {
   const setOpt = (patch: Partial<TableOptions>) => set(ch => ({ ...ch, options: { ...ch.options, ...patch } }))
+  /** True when every setting in the preset matches the adventurer's current options. */
+  const presetIs = (preset: Partial<TableOptions>) =>
+    (Object.keys(preset) as (keyof TableOptions)[]).every(k => (c.options[k] ?? RQG_OPTIONS[k]) === preset[k])
 
   return (
     <div className="stack">
@@ -25,8 +30,9 @@ export function ConceptStep({ c, set }: StepProps) {
         title="Starting power"
         aside={
           <span className="row">
-            <button type="button" className="small" onClick={() => setOpt({ extraPersonal25: 0, extraPersonal10: 0, extraRunePoints: 0, extraSpiritMagic: 0, skillCap: 100 })}>Book default</button>
-            <button type="button" className="small" onClick={() => setOpt(EXPERIENCED_OPTIONS)}>Experienced</button>
+            {!presetIs(BOOK_POWER) && !presetIs(EXPERIENCED_OPTIONS) && <span className="pill">custom</span>}
+            <button type="button" className={`small preset ${presetIs(BOOK_POWER) ? 'selected' : ''}`} aria-pressed={presetIs(BOOK_POWER)} onClick={() => setOpt(BOOK_POWER)}>Book default</button>
+            <button type="button" className={`small preset ${presetIs(EXPERIENCED_OPTIONS) ? 'selected' : ''}`} aria-pressed={presetIs(EXPERIENCED_OPTIONS)} onClick={() => setOpt(EXPERIENCED_OPTIONS)}>Experienced</button>
           </span>
         }
       >
@@ -57,7 +63,13 @@ export function ConceptStep({ c, set }: StepProps) {
 
       <Section
         title="Table rules"
-        aside={<button type="button" className="small" onClick={() => setOpt(RQG_OPTIONS)}>Rules as written</button>}
+        aside={(() => {
+          const asWritten = c.options.charMethod === RQG_OPTIONS.charMethod
+          return (
+            <button type="button" className={`small preset ${asWritten ? 'selected' : ''}`} aria-pressed={asWritten}
+              onClick={() => setOpt({ charMethod: RQG_OPTIONS.charMethod, assignPoints: RQG_OPTIONS.assignPoints })}>Rules as written</button>
+          )
+        })()}
       >
         <p className="small dim">
           Defaults follow the RuneQuest: Roleplaying in Glorantha core rulebook. Change these only if your gamemaster uses house rules.
