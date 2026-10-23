@@ -35,6 +35,7 @@ export function newCharacter(): Character {
     favored: {},
     occupation: '',
     occupationPicks: {},
+    swaps: {},
     cult: '',
     cultStartPicks: {},
     cultPicks: [],

@@ -271,31 +271,38 @@ export function skillBase(c: Character, s: Skill, key?: SkillKey): number {
 }
 
 /** Expand grants into concrete (key, bonus) pairs using the adventurer's picks. */
-function applyGrants(c: Character, grants: SkillGrant[], picks: Record<number, SkillKey>): { key: SkillKey; bonus: number }[] {
+function applyGrants(c: Character, grants: SkillGrant[], picks: Record<number, SkillKey>, swapSource?: string): { key: SkillKey; bonus: number }[] {
   const out: { key: SkillKey; bonus: number }[] = []
   grants.forEach((g, i) => {
-    if ('skill' in g) out.push({ key: resolveKey(c, g.skill), bonus: g.bonus })
+    const swapped = swapSource ? c.swaps?.[`${swapSource}:${i}`] : undefined
+    if ('skill' in g) out.push({ key: swapped || resolveKey(c, g.skill), bonus: g.bonus })
     else if (picks[i]) out.push({ key: resolveKey(c, picks[i]), bonus: g.bonus })
   })
   return out
 }
 
+/** A fixed weapon bonus can be swapped to another weapon with the gamemaster's approval. */
+export const isSwappable = (g: SkillGrant) => 'skill' in g && !!skillById(parseKey(g.skill).id) && isWeaponSkill(skillById(parseKey(g.skill).id)!)
+
 export function homelandGrants(c: Character) {
-  return applyGrants(c, homelandOf(c)?.skills ?? [], c.homelandPicks)
+  return applyGrants(c, homelandOf(c)?.skills ?? [], c.homelandPicks, 'homeland')
 }
 export function occupationGrants(c: Character) {
-  return applyGrants(c, occupationOf(c)?.skills ?? [], c.occupationPicks)
+  return applyGrants(c, occupationOf(c)?.skills ?? [], c.occupationPicks, 'occupation')
 }
 export function regionOf(c: Character) {
   return homelandOf(c)?.regions?.find(r => r.id === c.region)
 }
 export function regionGrants(c: Character) {
-  return applyGrants(c, regionOf(c)?.skills ?? [], c.regionPicks)
+  return applyGrants(c, regionOf(c)?.skills ?? [], c.regionPicks, 'region')
 }
 
-/** The cult's starting skills as concrete keys: fixed ones, plus the chosen option of each "X or Y". */
+/** Skills the +20%/+15% initiation bonuses may go to: the cult's starting skills (fixed, plus the chosen option of each
+ *  "X or Y"), and, if the table allows it, Cult Lore, Worship, and Meditate (Chaosium Q&A for p.73). */
 export function cultStartingKeys(c: Character): SkillKey[] {
-  return applyGrants(c, cultOf(c)?.starting ?? [], c.cultStartPicks).map(g => g.key)
+  const starting = applyGrants(c, cultOf(c)?.starting ?? [], c.cultStartPicks).map(g => g.key)
+  const extra = c.options.cultBonusOnCultSkills ? RULES.cultFixedBonuses.map(g => resolveKey(c, g.skill)) : []
+  return [...new Set([...starting, ...extra])]
 }
 
 export function cultGrants(c: Character) {
@@ -370,6 +377,9 @@ export function skillLines(c: Character): SkillLine[] {
   const order = (s: Skill) => Object.keys(CATEGORY_NAMES).indexOf(s.category)
   return lines.sort((a, b) => order(a.skill) - order(b.skill) || a.name.localeCompare(b.name))
 }
+
+/** A 00% skill nothing has raised (Sense Chaos for a non-Storm Bull, Draconic Lore…): hidden from the sheet by default. */
+export const isUnraised = (l: SkillLine) => l.base === 0 && l.homeland + l.occupation + l.cult + l.history + l.personal === 0
 
 export const skillTotal = (c: Character, key: SkillKey) => skillLines(c).find(l => l.key === key)?.total ?? 0
 
@@ -551,12 +561,15 @@ export function skillChoices(c: Character, from: SkillChoiceFrom = 'any'): Skill
   else if (from === 'melee' || from === 'missile') keys = SKILLS.filter(s => s.category === from).map(s => s.id)
   else if (from === 'shield') keys = SKILLS.filter(s => s.category === 'shield').map(s => s.id)
   else if (from === 'cult') keys = (cultOf(c)?.skills ?? []).map(k => resolveKey(c, k))
+  else if (typeof from === 'object' && !Array.isArray(from)) keys = skillLines(c).filter(l => l.skill.id === from.subject).map(l => l.key)
   else if (from !== 'any') keys = from.flatMap(k => expandToken(c, k))
   else keys = [...new Set([...skillLines(c).map(l => l.key), ...SKILLS.filter(s => !s.specify).map(s => s.id)])]
   const out = keys.flatMap(key => {
     const s = skillById(parseKey(key).id)
     return s ? [{ key, name: skillName(c, key), group: CATEGORY_NAMES[s.category] }] : []
   })
+  // Each sorcery spell is its own skill, so personal bonuses may go to known spells (book p.79, p.388).
+  if (from === 'any') for (const id of knownSorcerySpellIds(c)) out.push({ key: `sorcery:${id}`, name: SORCERY_SPELLS.find(s => s.id === id)?.name ?? id, group: 'Sorcery' })
   const order = Object.values(CATEGORY_NAMES)
   return out.sort((a, b) => order.indexOf(a.group) - order.indexOf(b.group) || a.name.localeCompare(b.name))
 }
@@ -643,7 +656,12 @@ export function sorceryMasteries(c: Character): { runes: string[]; techniques: s
 
 export interface SorceryLine { id: string; name: string; bonus: number; total: number; costMultiplier: number }
 
-/** Known sorcery spells with their chance: Magic modifier + starting bonus, capped by Read/Write (p.388). */
+/** Ids of the sorcery spells the adventurer knows (Philosopher spells and cult sorcery). */
+export function knownSorcerySpellIds(c: Character): string[] {
+  return [...new Set([...(isPhilosopher(c) ? c.sorcery.spells : []), ...(sorceryCultOf(c) ? c.sorcery.cultSpells : [])])]
+}
+
+/** Known sorcery spells with their chance: Magic modifier + starting bonus + personal bonus, capped by Read/Write (p.388). */
 export function sorceryLines(c: Character): SorceryLine[] {
   const occ = isPhilosopher(c) ? c.sorcery.spells : []
   const cultSpells = sorceryCultOf(c) ? c.sorcery.cultSpells : []
@@ -655,8 +673,9 @@ export function sorceryLines(c: Character): SorceryLine[] {
   return ids.flatMap(id => {
     const spell = SORCERY_SPELLS.find(s => s.id === id)
     if (!spell) return []
+    const personal = personalGrants(c).filter(g => g.key === `sorcery:${id}`).reduce((t, g) => t + g.bonus, 0)
     const bonus = (occ.indexOf(id) >= 0 ? SORCERY_RULES.philosopherSpellBonuses[occ.indexOf(id)] ?? 0 : 0)
-      + (cultSpells.indexOf(id) >= 0 ? cultBonuses[cultSpells.indexOf(id)] ?? 0 : 0)
+      + (cultSpells.indexOf(id) >= 0 ? cultBonuses[cultSpells.indexOf(id)] ?? 0 : 0) + personal
     const unRunes = spell.runes.filter(r => !m.runes.includes(r)).length
     const unTech = spell.techniques.filter(t => !m.techniques.includes(t)).length
     const costMultiplier = unRunes && unTech ? 4 : unRunes || unTech ? SORCERY_RULES.unmasteredCostMultiplier : 1
@@ -739,4 +758,14 @@ export function chooseFavored(c: Character, slot: 'occupation' | 'cult', option:
     passions: [...cleared.passions, { uid, kind: option.kind, target, value: RULES.basePassion }],
     favored: { ...cleared.favored, [slot]: { kind: option.kind, target, uid, mode: 'new' } },
   }
+}
+
+/** Weapon swaps as "Battle Axe → Small Axe (homeland)". */
+export function swapList(c: Character): string[] {
+  return Object.entries(c.swaps ?? {}).flatMap(([key, to]) => {
+    const [source, index] = key.split(':')
+    const grants = source === 'homeland' ? homelandOf(c)?.skills : source === 'region' ? regionOf(c)?.skills : occupationOf(c)?.skills
+    const g = grants?.[Number(index)]
+    return g && 'skill' in g ? [`${skillName(c, resolveKey(c, g.skill))} → ${skillName(c, to)} (${source})`] : []
+  })
 }

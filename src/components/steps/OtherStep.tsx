@@ -89,10 +89,18 @@ export function OtherStep({ c, set }: StepProps) {
           <button type="button" onClick={() => { const r = d20(); setInfo({ heirloom: `${r}: ${heirloomFor(r)[1]}` }) }}>Roll D20</button>
         </div>
         <details className="small">
-          <summary className="dim">Heirloom table</summary>
-          <table className="compact">
-            <tbody>{HEIRLOOMS.map(([r, t]) => <tr key={r}><td className="mono">{r}</td><td>{t}</td></tr>)}</tbody>
-          </table>
+          <summary className="dim">Heirloom table: roll, or choose one with your gamemaster's approval</summary>
+          <ul className="pick-list heirloom-list">
+            {HEIRLOOMS.filter(([r]) => r !== '20').map(([r, t]) => {
+              const on = c.info.heirloom.startsWith(`${r}: `)
+              return (
+                <li key={r} className={`pick-row ${on ? 'chosen' : ''}`}>
+                  <span className="pick-main"><span className="mono faint">{r}</span> {t}</span>
+                  <button type="button" className="pick-add small" onClick={() => setInfo({ heirloom: on ? '' : `${r}: ${t}` })}>{on ? 'Clear' : 'Choose'}</button>
+                </li>
+              )
+            })}
+          </ul>
         </details>
         <p className="small dim">Add any skill, passion, or Reputation bonus it gives on the Family & Passions step.</p>
       </Section>

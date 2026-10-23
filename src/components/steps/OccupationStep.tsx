@@ -1,8 +1,10 @@
 import { allOccupations } from '../../data/registry'
-import { cultById, homelandOf, occupationOf, skillChoices, skillName, undoFavored, withKit } from '../../engine/calc'
+import { cultById, homelandOf, occupationOf, undoFavored, withKit } from '../../engine/calc'
 import { uid } from '../../state/store'
 import { FavoredPicker } from '../FavoredPicker'
-import { ChoiceGrid, Section, SkillSelect, type StepProps } from '../ui'
+import { ChoiceGrid, Section, type StepProps } from '../ui'
+import { GrantPick } from '../GrantPick'
+import { GrantSwap } from '../GrantSwap'
 
 const STANDARD: Record<string, string> = { destitute: 'Destitute', poor: 'Poor', free: 'Free', noble: 'Noble', petty_king: 'Petty King' }
 
@@ -47,15 +49,9 @@ export function OccupationStep({ c, set }: StepProps) {
               <li key={i}>
                 <span className="good mono grant-bonus">+{g.bonus}%</span>
                 {'skill' in g
-                  ? <span>{skillName(c, g.skill)}</span>
+                  ? <GrantSwap c={c} set={set} source="occupation" index={i} grant={g} />
                   : (
-                    <SkillSelect
-                      label={g.label ?? 'Skill choice'}
-                      placeholder={`Choose ${g.label ?? 'a skill'}…`}
-                      value={c.occupationPicks[i] ?? ''}
-                      options={skillChoices(c, g.choose)}
-                      onChange={k => set(ch => ({ ...ch, occupationPicks: { ...ch.occupationPicks, [i]: k } }))}
-                    />
+                    <GrantPick c={c} grant={g} value={c.occupationPicks[i] ?? ''} onChange={k => set(ch => ({ ...ch, occupationPicks: { ...ch.occupationPicks, [i]: k } }))} />
                   )}
               </li>
             ))}

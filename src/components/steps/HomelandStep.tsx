@@ -1,9 +1,11 @@
 import { allHomelands } from '../../data/registry'
-import { CHAR_NAMES, RUNE_NAMES, applyRegionPassions, cultById, homelandOf, occupationById, regionOf, skillChoices, skillName } from '../../engine/calc'
+import { CHAR_NAMES, RUNE_NAMES, applyRegionPassions, cultById, homelandOf, occupationById, regionOf, skillName } from '../../engine/calc'
 import { RULES } from '../../engine/rules'
 import type { CharId } from '../../engine/types'
 import { homelandPassions, uid } from '../../state/store'
-import { ChoiceGrid, Section, SkillSelect, type StepProps } from '../ui'
+import { ChoiceGrid, Section, type StepProps } from '../ui'
+import { GrantPick } from '../GrantPick'
+import { GrantSwap } from '../GrantSwap'
 
 export function HomelandStep({ c, set }: StepProps) {
   const h = homelandOf(c)
@@ -39,7 +41,7 @@ export function HomelandStep({ c, set }: StepProps) {
           <ul className="tag-list">
             {h.skills.map((g, i) => 'skill' in g && (
               <li key={i} className="tag tag-plain">
-                {skillName(c, g.skill)} <span className="good mono">&nbsp;+{g.bonus}%</span>
+                <GrantSwap c={c} set={set} source="homeland" index={i} grant={g} /> <span className="good mono">&nbsp;+{g.bonus}%</span>
               </li>
             ))}
           </ul>
@@ -48,13 +50,7 @@ export function HomelandStep({ c, set }: StepProps) {
               {h.skills.map((g, i) => 'choose' in g && (
                 <li key={i}>
                   <span className="good mono grant-bonus">+{g.bonus}%</span>
-                  <SkillSelect
-                    label={g.label ?? 'Skill choice'}
-                    placeholder={`Choose ${g.label ?? 'a skill'}…`}
-                    value={c.homelandPicks[i] ?? ''}
-                    options={skillChoices(c, g.choose)}
-                    onChange={k => set(ch => ({ ...ch, homelandPicks: { ...ch.homelandPicks, [i]: k } }))}
-                  />
+                  <GrantPick c={c} grant={g} value={c.homelandPicks[i] ?? ''} onChange={k => set(ch => ({ ...ch, homelandPicks: { ...ch.homelandPicks, [i]: k } }))} />
                 </li>
               ))}
             </ul>
@@ -105,8 +101,7 @@ function RegionPicker({ c, set }: StepProps) {
           {region.skills.map((g, i) => 'choose' in g && (
             <li key={i}>
               <span className="good mono grant-bonus">+{g.bonus}%</span>
-              <SkillSelect label={g.label ?? 'Skill choice'} value={c.regionPicks[i] ?? ''} options={skillChoices(c, g.choose)}
-                onChange={k => set(ch => ({ ...ch, regionPicks: { ...ch.regionPicks, [i]: k } }))} />
+              <GrantPick c={c} grant={g} value={c.regionPicks[i] ?? ''} onChange={k => set(ch => ({ ...ch, regionPicks: { ...ch.regionPicks, [i]: k } }))} />
             </li>
           ))}
         </ul>

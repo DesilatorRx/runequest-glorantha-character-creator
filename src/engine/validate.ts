@@ -89,7 +89,9 @@ export function validate(c: Character): Issue[] {
     if (!('choose' in g)) return
     const pick = picks[i]
     if (!pick) warn(step, `Pick a skill for the +${g.bonus}% ${g.label ?? 'choice'}.`)
-    else if (!skillChoices(c, g.choose).some(o => o.key === pick))
+    else if (typeof g.choose === 'object' && !Array.isArray(g.choose)) {
+      if (!pick.startsWith(`${g.choose.subject}:`) || !pick.split(':')[1]?.trim()) warn(step, `Name the subject for the +${g.bonus}% ${g.label ?? 'choice'}.`)
+    } else if (!skillChoices(c, g.choose).some(o => o.key === pick))
       err(step, `${skillName(c, pick)} isn't a valid ${g.label ?? 'choice'} any more. Pick again.`)
   })
   if (home) checkPicks('homeland', home.skills, c.homelandPicks)

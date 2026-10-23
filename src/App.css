@@ -256,3 +256,7 @@ ul.plain li + li { margin-top: 0.2rem; }
 .grant-row { padding: 0.35rem 0; border-bottom: 1px solid var(--line); }
 .grants-editor select { max-width: 16rem; }
 button.preset.selected { border-color: var(--accent); background: rgba(224, 168, 78, 0.14); color: var(--accent); font-weight: 600; }
+.grant-swap { gap: 0.35rem; }
+.swap-select { font-size: 0.78rem; padding: 0.1em 0.3em; max-width: 7.5rem; color: var(--text-dim); }
+.strike { text-decoration: line-through; }
+.subject-input input { width: 11rem; }

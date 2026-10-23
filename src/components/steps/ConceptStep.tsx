@@ -88,6 +88,10 @@ export function ConceptStep({ c, set }: StepProps) {
               </>
             )}
           </label>
+          <label className="row">
+            <input type="checkbox" checked={!!c.options.cultBonusOnCultSkills} onChange={e => setOpt({ cultBonusOnCultSkills: e.target.checked })} />
+            <span>Cult +20%/+15% initiation bonuses may also go to Cult Lore, Worship, or Meditate (Chaosium Q&amp;A, with GM approval)</span>
+          </label>
         </div>
       </Section>
     </div>

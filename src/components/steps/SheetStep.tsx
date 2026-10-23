@@ -1,6 +1,6 @@
 import {
   CATEGORY_NAMES, LOCATION_NAMES, LOCATION_ROLLS, armorByLocation, charValue, computeDerived,
-  birthDate, commonRuneSpells, computeBudget, encCarried, encOver, loadedSkill, occupationKit, remaining, cultOf, gearById, homelandOf, knownSpirit, occupationOf, regionOf, runeSpellById, runeValue, skillLines,
+  birthDate, categoryMod, commonRuneSpells, isUnraised, swapList, computeBudget, encCarried, encOver, loadedSkill, occupationKit, remaining, cultOf, gearById, homelandOf, knownSpirit, occupationOf, regionOf, runeSpellById, runeValue, skillLines,
   sorceryLines, spiritSpellById,
 } from '../../engine/calc'
 import type { Character, SkillCategory } from '../../engine/types'
@@ -140,11 +140,12 @@ export function SheetStep({ c, issues }: { c: Character; issues: Issue[] }) {
           <h3>Skills</h3>
           <div className="skill-columns">
             {cats.map(cat => {
-              const rows = lines.filter(l => l.skill.category === cat)
+              const rows = lines.filter(l => l.skill.category === cat && !isUnraised(l))
               if (!rows.length) return null
+              const mod = categoryMod(c, cat)
               return (
                 <div key={cat} className="skill-block">
-                  <h4>{CATEGORY_NAMES[cat]}</h4>
+                  <h4>{CATEGORY_NAMES[cat]} <span className="faint mono">{mod > 0 ? `+${mod}` : mod < 0 ? `−${-mod}` : '±0'}%</span></h4>
                   <ul className="plain small">
                     {rows.map(l => <li key={l.key} className="row nowrap"><span><SkillPop c={c} line={l} /></span><span className="spacer" /><span className="mono">{loadedSkill(c, l) !== l.total ? <><span className="faint" title="Before encumbrance">{l.total}→</span><span className="warn" title="With what you carry">{loadedSkill(c, l)}%</span></> : `${l.total}%`}</span></li>)}
                   </ul>
@@ -165,7 +166,7 @@ export function SheetStep({ c, issues }: { c: Character; issues: Issue[] }) {
           </p>
         </section>
 
-        {(c.info.heirloom || c.info.scars || c.info.father || c.info.mother || c.info.tribe) && (
+        {(c.info.heirloom || c.info.scars || c.info.father || c.info.mother || c.info.tribe || Object.keys(c.swaps ?? {}).length > 0) && (
           <section>
             <h3>Background</h3>
             <p className="small">
@@ -174,6 +175,7 @@ export function SheetStep({ c, issues }: { c: Character; issues: Issue[] }) {
               {c.info.handedness === 'left' && <>Left-handed. </>}
               {c.info.scars && <>Scars: {c.info.scars}. </>}
               {c.info.heirloom && <><br />Heirloom: {c.info.heirloom}</>}
+              {Object.keys(c.swaps ?? {}).length > 0 && <><br />GM-approved swaps: {swapList(c).join('; ')}</>}
             </p>
           </section>
         )}

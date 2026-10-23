@@ -4,6 +4,7 @@ import { RUNE_NAMES, charValue, startingLimits, computeDerived, cultById, cultOf
 import { RULES } from '../../engine/rules'
 import { FavoredPicker } from '../FavoredPicker'
 import { ChoiceGrid, Section, SkillSelect, Stepper, type StepProps } from '../ui'
+import { GrantPick } from '../GrantPick'
 
 export function CultStep({ c, set }: StepProps) {
   const home = homelandOf(c)
@@ -44,9 +45,7 @@ export function CultStep({ c, set }: StepProps) {
                     {'skill' in g
                       ? <span>{skillName(c, resolveKey(c, g.skill))}</span>
                       : (
-                        <SkillSelect label={g.label ?? 'Starting skill choice'} placeholder={`Choose ${g.label ?? 'a skill'}…`}
-                          value={c.cultStartPicks[i] ?? ''} options={skillChoices(c, g.choose)}
-                          onChange={k => set(ch => ({ ...ch, cultStartPicks: { ...ch.cultStartPicks, [i]: k }, cultPicks: [] }))} />
+                        <GrantPick c={c} grant={g} value={c.cultStartPicks[i] ?? ''} onChange={k => set(ch => ({ ...ch, cultStartPicks: { ...ch.cultStartPicks, [i]: k }, cultPicks: [] }))} />
                       )}
                   </li>
                 ))}

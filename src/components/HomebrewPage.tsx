@@ -36,7 +36,7 @@ const blank: Record<Kind, () => Entry> = {
 /** Cult skills for the +20%/+15% picks: every skill the starting skills name, with open picks as tokens. */
 function cultSkillsFrom(starting: SkillGrant[]): string[] {
   return [...new Set(starting.flatMap(g => ('skill' in g ? [g.skill]
-    : Array.isArray(g.choose) ? g.choose : g.choose === 'cultural_weapon' ? ['@cultural_weapon'] : ['@weapon'])))]
+    : Array.isArray(g.choose) ? g.choose : typeof g.choose === 'object' ? [] : g.choose === 'cultural_weapon' ? ['@cultural_weapon'] : ['@weapon'])))]
 }
 
 export function HomebrewPage({ homebrew, onChange, onClose }: { homebrew: Homebrew; onChange: (h: Homebrew) => void; onClose: () => void }) {
@@ -309,19 +309,20 @@ function SkillKeyInput({ value, onChange }: { value: string; onChange: (key: str
   )
 }
 
-type GrantMode = 'skill' | 'list' | 'weapon' | 'melee' | 'missile' | 'cultural_weapon' | 'shield' | 'any'
+type GrantMode = 'skill' | 'list' | 'subject' | 'weapon' | 'melee' | 'missile' | 'cultural_weapon' | 'shield' | 'any'
 const MODE_NAMES: Record<GrantMode, string> = {
-  skill: 'Skill', list: 'One of these…', weapon: 'Any weapon', melee: 'Any melee weapon', missile: 'Any missile weapon',
+  skill: 'Skill', list: 'One of these…', subject: 'Subject of their choice…', weapon: 'Any weapon', melee: 'Any melee weapon', missile: 'Any missile weapon',
   cultural_weapon: 'A cultural weapon', shield: 'Any shield', any: 'Any skill',
 }
-const modeOf = (g: SkillGrant): GrantMode => ('skill' in g ? 'skill' : Array.isArray(g.choose) ? 'list' : g.choose === 'cult' ? 'any' : g.choose as GrantMode)
+const modeOf = (g: SkillGrant): GrantMode => ('skill' in g ? 'skill' : Array.isArray(g.choose) ? 'list' : typeof g.choose === 'object' ? 'subject' : g.choose === 'cult' ? 'any' : g.choose as GrantMode)
 
 /** Skill bonuses: fixed skills, or a choice (from a list, any weapon, etc.). */
 function GrantsEditor({ value, onChange }: { value: SkillGrant[]; onChange: (v: SkillGrant[]) => void }) {
   const update = (i: number, g: SkillGrant) => onChange(value.map((x, j) => (j === i ? g : x)))
   const switchMode = (i: number, mode: GrantMode) => {
     const bonus = value[i].bonus
-    update(i, mode === 'skill' ? { skill: '', bonus } : mode === 'list' ? { choose: [], bonus, label: '' } : { choose: mode, bonus, label: MODE_NAMES[mode].toLowerCase() })
+    update(i, mode === 'skill' ? { skill: '', bonus } : mode === 'list' ? { choose: [], bonus, label: '' }
+      : mode === 'subject' ? { choose: { subject: 'lore' }, bonus, label: 'Lore (any)' } : { choose: mode, bonus, label: MODE_NAMES[mode].toLowerCase() })
   }
   return (
     <div className="stack-tight grants-editor">
@@ -333,6 +334,11 @@ function GrantsEditor({ value, onChange }: { value: SkillGrant[]; onChange: (v: 
             {(Object.keys(MODE_NAMES) as GrantMode[]).map(m => <option key={m} value={m}>{MODE_NAMES[m]}</option>)}
           </select>
           {'skill' in g && <SkillKeyInput value={g.skill} onChange={skill => update(i, { ...g, skill })} />}
+          {'choose' in g && typeof g.choose === 'object' && !Array.isArray(g.choose) && (
+            <select aria-label="Skill with a subject" value={g.choose.subject} onChange={e => update(i, { ...g, choose: { subject: e.target.value }, label: `${skillById(e.target.value)?.name} (any)` })}>
+              {SKILLS.filter(x => x.specify).map(x => <option key={x.id} value={x.id}>{x.name} (any)</option>)}
+            </select>
+          )}
           {'choose' in g && Array.isArray(g.choose) && (
             <span className="row">
               {g.choose.map((k, j) => (

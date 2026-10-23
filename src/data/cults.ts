@@ -14,7 +14,7 @@ const pick = (choose: SkillKey[], bonus: number, label: string): SkillGrant => (
 
 /** Every skill key a starting grant can apply to ('@weapon' / '@cultural_weapon' for open weapon picks). */
 const skillsOf = (grants: SkillGrant[]): SkillKey[] => [...new Set(grants.flatMap(g =>
-  'skill' in g ? [g.skill] : Array.isArray(g.choose) ? g.choose : g.choose === 'cultural_weapon' ? ['@cultural_weapon'] : ['@weapon']))]
+  'skill' in g ? [g.skill] : Array.isArray(g.choose) ? g.choose : typeof g.choose === 'object' ? [] : g.choose === 'cultural_weapon' ? ['@cultural_weapon'] : ['@weapon']))]
 
 type CultDef = Omit<Cult, 'skills'> & { starting: SkillGrant[] }
 const cult = (d: CultDef): Cult => ({ ...d, skills: skillsOf(d.starting) })
@@ -150,7 +150,7 @@ export const CULTS: Cult[] = [
   cult({
     id: 'lhankor_mhy', name: 'Lhankor Mhy', runes: ['truth', 'stasis'], source: 'book', sorcery: true,
     hint: 'Lord of Knowledge: sages, scribes, and lawspeakers. Teaches every Detect spell and Farsee; may start with up to three cult sorcery spells instead of spirit magic.',
-    starting: [S('read_write:{language}', 20), S('lore:Any', 15), S('sing', 10)],
+    starting: [{ choose: { subject: 'read_write' }, bonus: 20, label: 'Read/Write (any)' }, { choose: { subject: 'lore' }, bonus: 15, label: 'Lore (any)' }, S('sing', 10)],
     spiritSpells: ['detect_enemies', 'detect_life', 'detect_magic', 'detect_spirit', 'detect_substance', 'detect_trap', 'detect_undead', 'farsee'],
     runeSpells: ['analyze_magic', 'clairvoyance', 'find_substance', 'knowledge', 'mind_read', 'reconstruction', 'translate', 'truespeak'],
     passions: [P('Loyalty', 'temple')],

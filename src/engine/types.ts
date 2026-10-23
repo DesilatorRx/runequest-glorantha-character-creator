@@ -49,6 +49,9 @@ export type SkillGrant =
   | { choose: SkillChoiceFrom; bonus: number; label?: string }
 export type SkillChoiceFrom =
   | SkillKey[] | 'weapon' | 'melee' | 'missile' | 'cultural_weapon' | 'cultural_melee' | 'cultural_missile' | 'shield' | 'cult' | 'any'
+  /** A skill with a subject the player names, e.g. Lore (any) or Read/Write (any). */
+  | SubjectChoice
+export interface SubjectChoice { subject: string }
 
 export interface PassionDef { kind: PassionKind; target: string; value: number }
 /** A passion an occupation or cult lets you pick: new at 60%, or +10% if already held. */
@@ -264,6 +267,8 @@ export interface Character {
   occupation: string
   /** Chosen skill for each choice grant of the occupation, by index into its `skills`. */
   occupationPicks: Record<number, SkillKey>
+  /** GM-approved weapon swaps: a fixed homeland/region/occupation weapon bonus moved to another weapon, keyed 'homeland:3'. */
+  swaps: Record<string, SkillKey>
 
   cult: string
   /** Chosen skill for each choice grant in the cult's starting skills. */

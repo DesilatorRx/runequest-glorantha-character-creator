@@ -43,6 +43,7 @@ export function Editor({ c, set, onClose }: { c: Character; set: Setter; onClose
   const issues = useMemo(() => validate(c), [c])
   const idx = STEPS.findIndex(s => s.id === step)
   const errorCount = issues.filter(i => i.severity === 'error').length
+  useEffect(() => { window.scrollTo({ top: 0 }) }, [step])
   useEffect(() => { track(`step/${step}`, `Reached step: ${STEPS.find(s => s.id === step)?.label}`, true) }, [step])
   useEffect(() => {
     if (step === 'sheet' && errorCount === 0) track('sheet-ready', 'Viewed a ready-for-adventure sheet', true)

@@ -44,7 +44,8 @@ describe('data integrity', () => {
   })
 
   it('gives every cult enough skills for the initiation picks', () => {
-    for (const c of CULTS) expect(c.skills.length).toBeGreaterThanOrEqual(RULES.cultSkillBonuses.length)
+    // The picks go to the cult's starting skills (including subjects the player names, like Lore (any)).
+    for (const c of CULTS) expect((c.starting ?? []).length, c.id).toBeGreaterThanOrEqual(RULES.cultSkillBonuses.length)
   })
 
   it('describes every skill and spell for the popovers', () => {

@@ -102,6 +102,8 @@ export interface TableOptions {
   extraSpiritMagic: number
   /** Highest a skill may start at (book: 100). */
   skillCap: number
+  /** GM option (Chaosium Q&A, p.73): the +20%/+15% initiation bonuses may also go to Cult Lore, Worship, or Meditate. */
+  cultBonusOnCultSkills?: boolean
 }
 
 export const RQG_OPTIONS: TableOptions = {
